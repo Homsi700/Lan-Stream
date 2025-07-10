@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users } from 'lucide-react';
+import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from './ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
@@ -82,16 +82,28 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           {userRole === 'admin' && (
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                href="/dashboard/user-management"
-                isActive={pathname.startsWith('/dashboard/user-management')}
-                tooltip={t('sidebar.userManagement')}
-              >
-                <Users />
-                <span>{t('sidebar.userManagement')}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  href="/dashboard/user-management"
+                  isActive={pathname.startsWith('/dashboard/user-management')}
+                  tooltip={t('sidebar.userManagement')}
+                >
+                  <Users />
+                  <span>{t('sidebar.userManagement')}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  href="/dashboard/settings"
+                  isActive={pathname.startsWith('/dashboard/settings')}
+                  tooltip={t('sidebar.settings')}
+                >
+                  <Settings />
+                  <span>{t('sidebar.settings')}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
           )}
         </SidebarMenu>
       </SidebarContent>

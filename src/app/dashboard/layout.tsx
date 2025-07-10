@@ -26,7 +26,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     
     const role = localStorage.getItem('user_role');
     // If a normal user tries to access admin pages, redirect them
-    if (role === 'user' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/user-management'))) {
+    if (role === 'user' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/user-management') || pathname.startsWith('/dashboard/settings'))) {
         router.replace('/dashboard/client');
         return;
     }

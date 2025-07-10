@@ -64,6 +64,30 @@ export const translations = {
           }
       }
     },
+    settings: {
+        title: 'Settings',
+        subtitle: 'Manage application settings and content.',
+        newVideo: {
+            title: 'Add New Video',
+            description: 'Add a new video card to the catalog.',
+            videoTitleLabel: 'Video Title',
+            videoTitlePlaceholder: 'Enter video title',
+            videoLinkLabel: 'Video Link',
+            videoLinkPlaceholder: 'Enter video stream URL',
+            addVideo: 'Add Video'
+        },
+        videoList: {
+            title: 'Video List',
+            description: 'List of all videos in the catalog.',
+            noVideos: 'No videos have been added yet.'
+        },
+        toast: {
+            videoAdded: {
+                title: 'Video Added',
+                description: 'The new video has been added to the catalog.'
+            }
+        }
+    },
     sidebar: {
       dashboard: 'Dashboard',
       settings: 'Settings',
@@ -182,6 +206,30 @@ export const translations = {
               description: 'تم تغيير حالة المستخدم بنجاح.',
           }
       }
+    },
+     settings: {
+        title: 'الإعدادات',
+        subtitle: 'إدارة إعدادات التطبيق والمحتوى.',
+        newVideo: {
+            title: 'إضافة فيديو جديد',
+            description: 'إضافة بطاقة فيديو جديدة إلى الكتالوج.',
+            videoTitleLabel: 'عنوان الفيديو',
+            videoTitlePlaceholder: 'أدخل عنوان الفيديو',
+            videoLinkLabel: 'رابط الفيديو',
+            videoLinkPlaceholder: 'أدخل رابط بث الفيديو',
+            addVideo: 'إضافة فيديو'
+        },
+        videoList: {
+            title: 'قائمة الفيديوهات',
+            description: 'قائمة بجميع الفيديوهات في الكتالوج.',
+            noVideos: 'لم يتم إضافة أي فيديوهات بعد.'
+        },
+        toast: {
+            videoAdded: {
+                title: 'تمت إضافة الفيديو',
+                description: 'تمت إضافة الفيديو الجديد إلى الكتالوج.'
+            }
+        }
     },
     sidebar: {
       dashboard: 'لوحة التحكم',
