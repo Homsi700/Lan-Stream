@@ -26,7 +26,7 @@ export function VideoCard({ video }: VideoCardProps) {
       </CardHeader>
       <CardContent className="flex-1 px-4 pb-4 -mt-2">
         <p className="text-sm text-muted-foreground line-clamp-4">
-          {video.summary}
+          {video.summary || video.title}
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0 bg-secondary/30">

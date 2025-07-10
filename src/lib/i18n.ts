@@ -65,21 +65,21 @@ export const translations = {
       }
     },
     settings: {
-        title: 'Settings',
-        subtitle: 'Manage application settings and content.',
+        title: 'Content Management',
+        subtitle: 'Manage the video content available in the catalog.',
         newVideo: {
             title: 'Add New Video',
-            description: 'Add a new video card to the catalog.',
+            description: 'Add a new video card to the catalog by providing a title and a direct stream link.',
             videoTitleLabel: 'Video Title',
-            videoTitlePlaceholder: 'Enter video title',
-            videoLinkLabel: 'Video Link',
-            videoLinkPlaceholder: 'Enter video stream URL',
+            videoTitlePlaceholder: 'e.g., Company All-Hands Q1',
+            videoLinkLabel: 'Video Stream Link',
+            videoLinkPlaceholder: 'e.g., http://server/stream.mp4',
             addVideo: 'Add Video'
         },
         videoList: {
-            title: 'Video List',
-            description: 'List of all videos in the catalog.',
-            noVideos: 'No videos have been added yet.'
+            title: 'Video Catalog',
+            description: 'List of all videos currently in the catalog.',
+            noVideos: 'No videos have been added yet. Use the form above to add one.'
         },
         toast: {
             videoAdded: {
@@ -90,8 +90,8 @@ export const translations = {
     },
     sidebar: {
       dashboard: 'Dashboard',
-      settings: 'Settings',
-      userManagement: 'User Management',
+      settings: 'Content',
+      userManagement: 'Users',
       accessControl: 'Access Control',
       logout: 'Logout',
       toggleTheme: 'Toggle theme',
@@ -107,9 +107,15 @@ export const translations = {
     },
     videoCard: {
       watchNow: 'Watch Now',
+      noSummary: 'No summary available.',
+      noVideos: {
+        title: 'The Catalog is Empty',
+        description: 'The administrator has not added any videos yet.'
+      }
     },
     watch: {
-        backToCatalog: 'Back to Catalog'
+        backToCatalog: 'Back to Catalog',
+        loadingVideo: 'Loading video details...',
     },
     videoPlayer: {
         browserNotSupported: 'Your browser does not support the video tag.',
@@ -131,7 +137,7 @@ export const translations = {
         },
         userRemoved: {
             title: "User Removed",
-            description: "The user has been removed.",
+            description: "The selected item has been removed.",
         },
         formError: {
             title: "Missing Information",
@@ -208,21 +214,21 @@ export const translations = {
       }
     },
      settings: {
-        title: 'الإعدادات',
-        subtitle: 'إدارة إعدادات التطبيق والمحتوى.',
+        title: 'إدارة المحتوى',
+        subtitle: 'إدارة محتوى الفيديو المتاح في الكتالوج.',
         newVideo: {
             title: 'إضافة فيديو جديد',
-            description: 'إضافة بطاقة فيديو جديدة إلى الكتالوج.',
+            description: 'أضف بطاقة فيديو جديدة إلى الكتالوج من خلال توفير عنوان ورابط بث مباشر.',
             videoTitleLabel: 'عنوان الفيديو',
-            videoTitlePlaceholder: 'أدخل عنوان الفيديو',
-            videoLinkLabel: 'رابط الفيديو',
-            videoLinkPlaceholder: 'أدخل رابط بث الفيديو',
+            videoTitlePlaceholder: 'مثال: اجتماع الشركة للربع الأول',
+            videoLinkLabel: 'رابط بث الفيديو',
+            videoLinkPlaceholder: 'مثال: http://server/stream.mp4',
             addVideo: 'إضافة فيديو'
         },
         videoList: {
-            title: 'قائمة الفيديوهات',
-            description: 'قائمة بجميع الفيديوهات في الكتالوج.',
-            noVideos: 'لم يتم إضافة أي فيديوهات بعد.'
+            title: 'كتالوج الفيديو',
+            description: 'قائمة بجميع الفيديوهات الموجودة حاليًا في الكتالوج.',
+            noVideos: 'لم يتم إضافة أي فيديوهات بعد. استخدم النموذج أعلاه لإضافة واحد.'
         },
         toast: {
             videoAdded: {
@@ -233,8 +239,8 @@ export const translations = {
     },
     sidebar: {
       dashboard: 'لوحة التحكم',
-      settings: 'الإعدادات',
-      userManagement: 'إدارة المستخدمين',
+      settings: 'المحتوى',
+      userManagement: 'المستخدمون',
       accessControl: 'التحكم بالوصول',
       logout: 'تسجيل الخروج',
       toggleTheme: 'تبديل السمة',
@@ -250,9 +256,15 @@ export const translations = {
     },
     videoCard: {
       watchNow: 'شاهد الآن',
+      noSummary: 'لا يوجد ملخص متاح.',
+      noVideos: {
+        title: 'الكتالوج فارغ',
+        description: 'لم يقم المسؤول بإضافة أي فيديوهات بعد.'
+      }
     },
     watch: {
-        backToCatalog: 'العودة إلى الكتالوج'
+        backToCatalog: 'العودة إلى الكتالوج',
+        loadingVideo: 'جارٍ تحميل تفاصيل الفيديو...'
     },
     videoPlayer: {
         browserNotSupported: 'متصفحك لا يدعم علامة الفيديو.',
@@ -273,8 +285,8 @@ export const translations = {
             description: "تمت إضافة مستخدم جديد بنجاح.",
         },
         userRemoved: {
-            title: "تم حذف المستخدم",
-            description: "تم حذف المستخدم.",
+            title: "تم حذف العنصر",
+            description: "تم حذف العنصر المحدد.",
         },
         formError: {
             title: "معلومات ناقصة",

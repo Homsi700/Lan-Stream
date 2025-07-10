@@ -26,15 +26,12 @@ export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
     <div className="w-full max-w-6xl aspect-video bg-black flex flex-col items-center justify-center p-4">
       <div className="relative w-full h-full group">
         <video
-          key={resolution} // Re-renders the video element on resolution change
+          key={videoSrc + resolution} 
           className="w-full h-full rounded-lg shadow-2xl shadow-primary/20"
           controls
           autoPlay
-          // In a real app, you would change the source based on resolution
-          // src={`${videoSrc}?resolution=${resolution}`}
         >
-          {/* Using a placeholder video since we can't package one. */}
-          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+          <source src={videoSrc} type="video/mp4" />
           {t('videoPlayer.browserNotSupported')}
         </video>
         <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

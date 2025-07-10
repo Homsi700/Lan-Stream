@@ -6,55 +6,58 @@ import { summarizeVideos, type VideoSummaryOutput } from '@/ai/flows/video-summa
 import { VideoCard, VideoCardSkeleton } from '@/components/video-card';
 import { useTranslation } from '@/hooks/use-translation';
 
-const mockVideosData = {
-  en: [
-    { id: '1', title: 'Company All-Hands Q1', description: 'Quarterly all-hands meeting covering Q1 results and Q2 roadmap.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'corporate meeting' },
-    { id: '2', title: 'New Employee Onboarding', description: 'A welcome video for new hires, covering company culture and policies.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'office teamwork' },
-    { id: '3', title: 'Product X Launch Event', description: 'The official launch event for our new Product X.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'product launch' },
-    { id: '4', title: 'Advanced Security Training', description: 'Mandatory security training for all engineering staff.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'cyber security' },
-    { id: '5', title: 'Marketing Strategy 2024', description: 'Deep dive into the marketing strategies for the upcoming year.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'marketing strategy' },
-    { id: '6', title: 'Team Building Workshop', description: 'Highlights from the annual team building workshop.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'team building' }
-  ],
-  ar: [
-    { id: '1', title: 'اجتماع الشركة الربع الأول', description: 'الاجتماع الفصلي الشامل الذي يغطي نتائج الربع الأول وخارطة طريق الربع الثاني.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'corporate meeting' },
-    { id: '2', title: 'تأهيل الموظفين الجدد', description: 'فيديو ترحيبي للموظفين الجدد، يغطي ثقافة الشركة وسياساتها.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'office teamwork' },
-    { id: '3', title: 'حدث إطلاق المنتج X', description: 'حدث الإطلاق الرسمي لمنتجنا الجديد X.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'product launch' },
-    { id: '4', title: 'تدريب أمني متقدم', description: 'تدريب أمني إلزامي لجميع الموظفين الهندسيين.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'cyber security' },
-    { id: '5', title: 'استراتيجية التسويق 2024', description: 'نظرة عميقة في استراتيجيات التسويق للعام القادم.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'marketing strategy' },
-    { id: '6', title: 'ورشة عمل بناء الفريق', description: 'أبرز لقطات من ورشة العمل السنوية لبناء الفريق.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'team building' }
-  ]
-};
+const VIDEOS_STORAGE_KEY = 'lan_stream_videos';
 
-
-export type Video = (typeof mockVideosData.en)[0] & { summary?: string };
+export interface Video {
+  id: number;
+  title: string;
+  link: string;
+  summary?: string;
+}
 
 export function VideoCatalog() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { language } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  useEffect(() => {
+    if (!isClient) return;
+
     const fetchSummaries = async () => {
       setIsLoading(true);
-      const mockVideos = mockVideosData[language];
+      const storedVideosRaw = localStorage.getItem(VIDEOS_STORAGE_KEY);
+      const storedVideos: Video[] = storedVideosRaw ? JSON.parse(storedVideosRaw) : [];
+
+      if (storedVideos.length === 0) {
+        setVideos([]);
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const videoTitles = mockVideos.map(v => v.title);
-        const videoDescriptions = mockVideos.map(v => v.description);
+        const videoTitles = storedVideos.map(v => v.title);
+        // Using title as a placeholder for description as we don't have descriptions field
+        const videoDescriptions = storedVideos.map(v => v.title);
         
         const result: VideoSummaryOutput = await summarizeVideos({ videoTitles, videoDescriptions });
         
-        const videosWithSummaries = mockVideos.map((video, index) => ({
+        const videosWithSummaries = storedVideos.map((video, index) => ({
           ...video,
-          summary: result.summaries[index] || 'No summary available.',
+          summary: result.summaries[index] || t('videoCard.noSummary'),
         }));
         
         setVideos(videosWithSummaries);
       } catch (error) {
         console.error('Failed to get video summaries:', error);
         // Set videos with a fallback summary on error
-        const videosWithFallback = mockVideos.map(video => ({
+        const videosWithFallback = storedVideos.map(video => ({
           ...video,
-          summary: video.description,
+          summary: video.title, // Fallback to title if summary fails
         }));
         setVideos(videosWithFallback);
       } finally {
@@ -62,7 +65,17 @@ export function VideoCatalog() {
       }
     };
     fetchSummaries();
-  }, [language]);
+  }, [isClient, t]);
+
+  if (!isClient) {
+    return (
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <VideoCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -72,6 +85,15 @@ export function VideoCatalog() {
         ))}
       </div>
     );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center h-64 border-2 border-dashed rounded-lg">
+        <p className="text-lg font-semibold text-primary">{t('videoCard.noVideos.title')}</p>
+        <p className="text-muted-foreground">{t('videoCard.noVideos.description')}</p>
+      </div>
+    )
   }
   
   return (
