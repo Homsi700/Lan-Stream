@@ -24,7 +24,8 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, SetValue<T>] {
       console.warn(`Error reading localStorage key “${key}”:`, error);
       setStoredValue(initialValue);
     }
-  }, [key, initialValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
 
   const setValue: SetValue<T> = useCallback(
