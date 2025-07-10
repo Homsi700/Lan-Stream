@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/sidebar';
 import { Clapperboard } from 'lucide-react';
@@ -11,28 +11,19 @@ import { useAppContext } from '@/context/app-context';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [isAuth, setIsAuth] = useState(false);
   const { t } = useTranslation();
   const { language, theme } = useAppContext();
 
   useEffect(() => {
+    // This check runs on the client-side
     const token = localStorage.getItem('auth_token');
     if (!token) {
       router.replace('/');
-      return;
+    } else {
+      setIsAuth(true);
     }
-
-    const role = localStorage.getItem('user_role');
-    const isAdminPage = pathname.includes('/user-management') || pathname.includes('/settings');
-
-    if (role === 'user' && isAdminPage) {
-      router.replace('/dashboard/client');
-      return;
-    }
-
-    setIsAuth(true);
-  }, [router, pathname]);
+  }, [router]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
