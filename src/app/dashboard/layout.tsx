@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/sidebar';
 import { Clapperboard } from 'lucide-react';
@@ -18,18 +18,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
-    const role = localStorage.getItem('user_role');
-
     if (!token) {
       router.replace('/');
       return;
     }
 
-    // Redirect user if they try to access admin pages
+    const role = localStorage.getItem('user_role');
     const isAdminPage = pathname.includes('/user-management') || pathname.includes('/settings');
+
     if (role === 'user' && isAdminPage) {
-        router.replace('/dashboard/client');
-        return;
+      router.replace('/dashboard/client');
+      return;
     }
 
     setIsAuth(true);
