@@ -206,7 +206,7 @@ export default function AccessControlForm() {
                     </TableCell>
                 </TableRow>
               )}
-            </TableBody>
+            </Body>
           </Table>
         </div>
       </CardContent>

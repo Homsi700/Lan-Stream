@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/sidebar';
 import { Clapperboard } from 'lucide-react';
@@ -12,7 +12,6 @@ import { useAppContext } from '@/context/app-context';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [isAuth, setIsAuth] = useState(false);
   const { t } = useTranslation();
   const { language, theme } = useAppContext();
@@ -23,15 +22,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.replace('/');
       return;
     }
-    // Temporarily grant access to everyone for testing
     setIsAuth(true);
   }, [router]);
 
   useEffect(() => {
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
+    if (typeof window !== 'undefined') {
+      document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = language;
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(theme);
+    }
   }, [language, theme]);
 
 
