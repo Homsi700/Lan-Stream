@@ -1,127 +1,106 @@
-
 "use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { Clapperboard, Home, Settings, LogOut, Moon, Sun, Languages, Users } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from './ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
+import { useAppContext } from '@/context/app-context';
+import { Button } from './ui/button';
 
-interface Address {
-  id: number;
-  value: string;
-  type: 'IP' | 'MAC';
-}
+export function AppSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { t, language, setLanguage } = useTranslation();
+  const { theme, setTheme } = useAppContext();
 
-const initialAddresses: Address[] = [
-  { id: 1, value: '192.168.88.101', type: 'IP' },
-  { id: 2, value: '00:0A:95:9D:68:16', type: 'MAC' },
-  { id: 3, value: '192.168.88.254', type: 'IP' },
-];
-
-export default function AccessControlForm() {
-  const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
-  const [newAddress, setNewAddress] = useState('');
-  const { toast } = useToast();
-  const { t } = useTranslation();
-
-  const handleAddAddress = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAddress) return;
-
-    // Basic validation
-    const isMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(newAddress);
-    const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(newAddress);
-
-    if (!isMac && !isIp) {
-      toast({ variant: 'destructive', title: t('toast.invalidAddress.title'), description: t('toast.invalidAddress.description') });
-      return;
-    }
-    
-    if (addresses.some(addr => addr.value === newAddress)) {
-        toast({ variant: 'destructive', title: t('toast.addressExists.title'), description: t('toast.addressExists.description') });
-        return;
-    }
-
-    const newEntry: Address = {
-      id: Date.now(),
-      value: newAddress,
-      type: isMac ? 'MAC' : 'IP',
-    };
-
-    setAddresses([...addresses, newEntry]);
-    setNewAddress('');
-    toast({ title: t('toast.addressAdded.title'), description: `${newEntry.value} ${t('toast.addressAdded.description')}` });
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    router.push('/');
   };
 
-  const handleRemoveAddress = (id: number) => {
-    const addressToRemove = addresses.find(addr => addr.id === id);
-    setAddresses(addresses.filter(addr => addr.id !== id));
-    if(addressToRemove) {
-        toast({ title: t('toast.addressRemoved.title'), description: `${addressToRemove.value} ${t('toast.addressRemoved.description')}` });
-    }
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
+  const toggleLanguage = () => {
+    const newLang = language === 'en' ? 'ar' : 'en';
+    setLanguage(newLang);
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = newLang;
+  };
+  
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle>{t('accessControl.form.title')}</CardTitle>
-        <CardDescription>{t('accessControl.form.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleAddAddress} className="flex items-end gap-2 mb-6">
-          <div className="flex-1">
-            <Label htmlFor="new-address" className="sr-only">{t('accessControl.form.newAddressLabel')}</Label>
-            <Input
-              id="new-address"
-              placeholder={t('accessControl.form.newAddressPlaceholder')}
-              value={newAddress}
-              onChange={(e) => setNewAddress(e.target.value)}
-            />
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary-foreground p-2 rounded-lg">
+             <Clapperboard className="h-6 w-6 text-primary" />
           </div>
-          <Button type="submit">
-            <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('add')}
-          </Button>
-        </form>
-
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('accessControl.table.address')}</TableHead>
-                <TableHead>{t('accessControl.table.type')}</TableHead>
-                <TableHead className="text-right">{t('accessControl.table.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {addresses.length > 0 ? (
-                addresses.map(addr => (
-                  <TableRow key={addr.id}>
-                    <TableCell className="font-mono">{addr.value}</TableCell>
-                    <TableCell>{addr.type}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleRemoveAddress(addr.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                        <span className="sr-only">{t('remove')}</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
-                        {t('accessControl.table.noAddresses')}
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <span className="text-lg font-semibold text-sidebar-foreground font-headline">{t('appName')}</span>
         </div>
-      </CardContent>
-    </Card>
+      </SidebarHeader>
+      <SidebarContent className="p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              href="/dashboard"
+              isActive={pathname === '/dashboard'} 
+              tooltip={t('sidebar.dashboard')}
+            >
+              <Home />
+              <span>{t('sidebar.dashboard')}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              href="/dashboard/user-management"
+              isActive={pathname.startsWith('/dashboard/user-management')}
+              tooltip={t('sidebar.userManagement')}
+            >
+              <Users />
+              <span>{t('sidebar.userManagement')}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+         <div className="flex items-center gap-2 p-2">
+           <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full justify-center">
+             {theme === 'light' ? <Moon /> : <Sun />}
+             <span className="sr-only">{t('sidebar.toggleTheme')}</span>
+           </Button>
+            <Button variant="ghost" size="icon" onClick={toggleLanguage} className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground w-full justify-center">
+             <Languages />
+             <span className="sr-only">{t('sidebar.toggleLanguage')}</span>
+           </Button>
+         </div>
+
+        <Separator className="my-2 bg-sidebar-border" />
+         <div className="flex items-center gap-3 p-2">
+            <Avatar className="h-9 w-9">
+                <AvatarImage src="https://placehold.co/100x100.png" alt="@admin" data-ai-hint="user avatar" />
+                <AvatarFallback>A</AvatarFallback>
+            </Avatar>
+            <div className="overflow-hidden">
+                <p className="font-semibold truncate">{t('sidebar.adminUser.name')}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{t('sidebar.adminUser.email')}</p>
+            </div>
+        </div>
+        <SidebarMenuButton onClick={handleLogout} variant="default" className="bg-sidebar-accent/50 hover:bg-sidebar-accent">
+          <LogOut />
+          <span>{t('sidebar.logout')}</span>
+        </SidebarMenuButton>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

@@ -20,30 +20,27 @@ export const translations = {
       title: 'Video Catalog',
       subtitle: 'Browse and stream available content on the local network.',
     },
-    accessControl: {
-      title: 'Access Management',
-      subtitle: 'Control which devices can access the video stream via the MikroTik integration.',
-      integrationCard: {
-        title: 'MikroTik Integration',
-        description: 'This interface allows you to manage access rules that can be applied to your MikroTik router. Approved IP and MAC addresses will be allowed to connect to the video streaming service.',
-        status: 'Status: Connected & Active',
-      },
+    userManagement: {
+      title: 'User Management',
+      subtitle: 'Add, remove, and manage users who can access the video streams.',
       form: {
-          title: 'Approved Addresses',
-          description: 'Manage the list of IP and MAC addresses that are permitted to access content.',
-          newAddressLabel: 'New Address',
-          newAddressPlaceholder: 'Enter IP or MAC address',
+          title: 'Registered Users',
+          description: 'Manage the list of users who are permitted to log in and access content.',
+          usernameLabel: 'Username',
+          usernamePlaceholder: 'Enter a new username',
+          passwordLabel: 'Password',
+          passwordPlaceholder: 'Enter a password',
       },
       table: {
-          address: 'Address',
-          type: 'Type',
+          username: 'Username',
           actions: 'Actions',
-          noAddresses: 'No addresses on the allow list.',
+          noUsers: 'No users have been added yet.',
       }
     },
     sidebar: {
       dashboard: 'Dashboard',
       settings: 'Settings',
+      userManagement: 'User Management',
       logout: 'Logout',
       toggleTheme: 'Toggle theme',
       toggleLanguage: 'Toggle language',
@@ -72,21 +69,17 @@ export const translations = {
             title: "Login Failed",
             description: "Invalid username or password.",
         },
-        invalidAddress: {
-            title: "Invalid Address",
-            description: "Please enter a valid IP or MAC address.",
+        userAdded: {
+            title: "User Added",
+            description: "A new user has been successfully added.",
         },
-        addressExists: {
-            title: "Address exists",
-            description: "This address is already on the list.",
+        userRemoved: {
+            title: "User Removed",
+            description: "The user has been removed.",
         },
-        addressAdded: {
-            title: "Address Added",
-            description: "has been added to the allow list.",
-        },
-        addressRemoved: {
-            title: "Address Removed",
-            description: "has been removed.",
+        formError: {
+            title: "Missing Information",
+            description: "Please fill out all fields.",
         }
     }
   },
@@ -110,30 +103,27 @@ export const translations = {
       title: 'كتالوج الفيديو',
       subtitle: 'تصفح وبث المحتوى المتاح على الشبكة المحلية.',
     },
-    accessControl: {
-      title: 'إدارة الوصول',
-      subtitle: 'تحكم في الأجهزة التي يمكنها الوصول إلى بث الفيديو عبر تكامل MikroTik.',
-      integrationCard: {
-        title: 'تكامل MikroTik',
-        description: 'تتيح لك هذه الواجهة إدارة قواعد الوصول التي يمكن تطبيقها على جهاز التوجيه MikroTik الخاص بك. سيتم السماح لعناوين IP و MAC المعتمدة بالاتصال بخدمة بث الفيديو.',
-        status: 'الحالة: متصل ونشط',
-      },
-       form: {
-          title: 'العناوين المعتمدة',
-          description: 'إدارة قائمة عناوين IP و MAC المسموح لها بالوصول إلى المحتوى.',
-          newAddressLabel: 'عنوان جديد',
-          newAddressPlaceholder: 'أدخل عنوان IP أو MAC',
+    userManagement: {
+      title: 'إدارة المستخدمين',
+      subtitle: 'إضافة وإزالة وإدارة المستخدمين الذين يمكنهم الوصول إلى بث الفيديو.',
+      form: {
+          title: 'المستخدمون المسجلون',
+          description: 'إدارة قائمة المستخدمين المسموح لهم بتسجيل الدخول والوصول إلى المحتوى.',
+          usernameLabel: 'اسم المستخدم',
+          usernamePlaceholder: 'أدخل اسم مستخدم جديد',
+          passwordLabel: 'كلمة المرور',
+          passwordPlaceholder: 'أدخل كلمة المرور',
       },
       table: {
-          address: 'العنوان',
-          type: 'النوع',
+          username: 'اسم المستخدم',
           actions: 'الإجراءات',
-          noAddresses: 'لا توجد عناوين في قائمة السماح.',
+          noUsers: 'لم يتم إضافة أي مستخدمين بعد.',
       }
     },
     sidebar: {
       dashboard: 'لوحة التحكم',
       settings: 'الإعدادات',
+      userManagement: 'إدارة المستخدمين',
       logout: 'تسجيل الخروج',
       toggleTheme: 'تبديل السمة',
       toggleLanguage: 'تبديل اللغة',
@@ -162,21 +152,17 @@ export const translations = {
             title: "فشل تسجيل الدخول",
             description: "اسم المستخدم أو كلمة المرور غير صالحة.",
         },
-        invalidAddress: {
-            title: "عنوان غير صالح",
-            description: "الرجاء إدخال عنوان IP أو MAC صالح.",
+        userAdded: {
+            title: "تمت إضافة المستخدم",
+            description: "تمت إضافة مستخدم جديد بنجاح.",
         },
-        addressExists: {
-            title: "العنوان موجود",
-            description: "هذا العنوان موجود بالفعل في القائمة.",
+        userRemoved: {
+            title: "تم حذف المستخدم",
+            description: "تم حذف المستخدم.",
         },
-        addressAdded: {
-            title: "تمت إضافة العنوان",
-            description: "تمت إضافته إلى قائمة السماح.",
-        },
-        addressRemoved: {
-            title: "تمت إزالة العنوان",
-            description: "تمت إزالته.",
+        formError: {
+            title: "معلومات ناقصة",
+            description: "يرجى ملء جميع الحقول.",
         }
     }
   },
