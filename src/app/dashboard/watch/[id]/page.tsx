@@ -1,14 +1,12 @@
 
 "use client";
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { VideoPlayer } from '@/components/video-player';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Film } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/use-translation';
-
-const VIDEOS_STORAGE_KEY = 'lan_stream_videos';
 
 interface Video {
   id: number;
@@ -28,10 +26,18 @@ export default function WatchPage() {
 
     const videoId = typeof params.id === 'string' ? params.id : '';
     if (videoId) {
-      const storedVideosRaw = localStorage.getItem(VIDEOS_STORAGE_KEY);
-      const storedVideos: Video[] = storedVideosRaw ? JSON.parse(storedVideosRaw) : [];
-      const foundVideo = storedVideos.find(v => v.id.toString() === videoId);
-      setVideo(foundVideo || null);
+        const fetchVideos = async () => {
+            try {
+                const response = await fetch('/api/videos');
+                const storedVideos: Video[] = await response.json();
+                const foundVideo = storedVideos.find(v => v.id.toString() === videoId);
+                setVideo(foundVideo || null);
+            } catch (error) {
+                console.error("Failed to fetch video details", error);
+                setVideo(null);
+            }
+        };
+        fetchVideos();
     }
   }, [params.id]);
   

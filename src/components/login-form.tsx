@@ -11,19 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
-const USERS_STORAGE_KEY = 'lan_stream_users';
-
-const getStoredUsers = () => {
-    if (typeof window === 'undefined') return [];
-    const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
-    try {
-        return usersJson ? JSON.parse(usersJson) : [];
-    } catch (e) {
-        return [];
-    }
-};
-
-
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
@@ -33,58 +20,66 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Admin user
-      if (username === 'admin' && password === 'password') {
-        toast({
-          title: t('toast.loginSuccess.title'),
-          description: t('toast.loginSuccess.description'),
-        });
-        localStorage.setItem("auth_token", `dummy_token_for_admin`);
-        localStorage.setItem("user_role", 'admin');
-        router.push("/dashboard");
-        return;
-      }
+    // Admin user
+    if (username === 'admin' && password === 'password') {
+      toast({
+        title: t('toast.loginSuccess.title'),
+        description: t('toast.loginSuccess.description'),
+      });
+      localStorage.setItem("auth_token", `dummy_token_for_admin`);
+      localStorage.setItem("user_role", 'admin');
+      router.push("/dashboard");
+      setIsLoading(false);
+      return;
+    }
 
-      // Regular users
-      const storedUsers = getStoredUsers();
-      const foundUser = storedUsers.find(
-        (user: any) => user.username === username && user.password === password
-      );
+    try {
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const users = await response.json();
+        
+        const foundUser = users.find(
+            (user: any) => user.username === username && user.password === password
+        );
 
-      if (foundUser) {
-        const isExpired = foundUser.expiresAt && new Date(foundUser.expiresAt) < new Date();
-        if (foundUser.status === 'inactive' || isExpired) {
+        if (foundUser) {
+            const isExpired = foundUser.expiresAt && new Date(foundUser.expiresAt) < new Date();
+            if (foundUser.status === 'inactive' || isExpired) {
+                toast({
+                    variant: "destructive",
+                    title: t('toast.accountError.title'),
+                    description: t('toast.accountError.description'),
+                });
+            } else {
+                 toast({
+                    title: t('toast.loginSuccess.title'),
+                    description: t('toast.loginSuccess.description'),
+                });
+                
+                localStorage.setItem("auth_token", `dummy_token_for_${username}`);
+                localStorage.setItem("user_role", 'user');
+                router.push("/dashboard/client");
+            }
+        } else {
             toast({
                 variant: "destructive",
-                title: t('toast.accountError.title'),
-                description: t('toast.accountError.description'),
+                title: t('toast.loginFailed.title'),
+                description: t('toast.loginFailed.description'),
             });
-            setIsLoading(false);
-            return;
         }
-
+    } catch(error) {
         toast({
-          title: t('toast.loginSuccess.title'),
-          description: t('toast.loginSuccess.description'),
+            variant: "destructive",
+            title: "Server Error",
+            description: "Could not connect to the server.",
         });
-        
-        localStorage.setItem("auth_token", `dummy_token_for_${username}`);
-        localStorage.setItem("user_role", 'user');
-        router.push("/dashboard/client");
-      } else {
-        toast({
-          variant: "destructive",
-          title: t('toast.loginFailed.title'),
-          description: t('toast.loginFailed.description'),
-        });
+    } finally {
         setIsLoading(false);
-      }
-    }, 1000);
+    }
   };
 
   return (

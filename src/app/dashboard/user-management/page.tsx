@@ -1,20 +1,19 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Eye, EyeOff } from 'lucide-react';
+import { PlusCircle, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { add } from 'date-fns';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface User {
   id: number;
@@ -24,10 +23,9 @@ interface User {
   expiresAt: string | null;
 }
 
-const USERS_STORAGE_KEY = 'lan_stream_users';
-
 export default function UserManagementPage() {
-  const [users, setUsers] = useLocalStorage<User[]>(USERS_STORAGE_KEY, []);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [subscriptionPeriod, setSubscriptionPeriod] = useState('1_month');
@@ -35,16 +33,28 @@ export default function UserManagementPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch users.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUsername || !newPassword) {
       toast({ variant: 'destructive', title: t('toast.formError.title'), description: t('toast.formError.description') });
       return;
-    }
-    
-    if (users.some(user => user.username === newUsername) || newUsername === 'admin') {
-        toast({ variant: 'destructive', title: t('userManagement.toast.userExists.title'), description: t('userManagement.toast.userExists.description') });
-        return;
     }
 
     let expiresAt: string | null = null;
@@ -53,35 +63,61 @@ export default function UserManagementPage() {
         expiresAt = add(new Date(), { [unit + 's']: parseInt(amount) }).toISOString();
     }
 
-    const newUser: User = {
+    const newUser: Omit<User, 'id'> & { id?: number } = {
       id: Date.now(),
       username: newUsername,
       password: newPassword,
       status: 'active',
       expiresAt: expiresAt
     };
-    
-    setUsers([...users, newUser]);
-    setNewUsername('');
-    setNewPassword('');
-    toast({ title: t('toast.userAdded.title'), description: t('toast.userAdded.description') });
+
+    try {
+        const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newUser),
+        });
+
+        if (response.status === 409) {
+            toast({ variant: 'destructive', title: t('userManagement.toast.userExists.title'), description: t('userManagement.toast.userExists.description') });
+            return;
+        }
+
+        if (!response.ok) throw new Error('Failed to add user');
+
+        await fetchUsers();
+        setNewUsername('');
+        setNewPassword('');
+        toast({ title: t('toast.userAdded.title'), description: t('toast.userAdded.description') });
+
+    } catch(error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to add user.' });
+    }
   };
 
-  const handleRemoveUser = (id: number) => {
-    const updatedUsers = users.filter(user => user.id !== id);
-    setUsers(updatedUsers);
-    toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
+  const handleRemoveUser = async (id: number) => {
+    try {
+      await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      await fetchUsers();
+      toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
+    } catch(error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to remove user.' });
+    }
   };
 
-  const handleToggleStatus = (id: number) => {
-      const updatedUsers = users.map(user => {
-          if (user.id === id) {
-              return { ...user, status: user.status === 'active' ? 'inactive' : 'active' };
-          }
-          return user;
-      });
-      setUsers(updatedUsers);
-      toast({ title: t('userManagement.toast.statusChanged.title'), description: t('userManagement.toast.statusChanged.description') });
+  const handleToggleStatus = async (id: number, currentStatus: 'active' | 'inactive') => {
+      try {
+        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+        await fetch(`/api/users/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus }),
+        });
+        await fetchUsers();
+        toast({ title: t('userManagement.toast.statusChanged.title'), description: t('userManagement.toast.statusChanged.description') });
+      } catch(error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update status.' });
+      }
   };
 
   const getStatusBadge = (user: User) => {
@@ -170,7 +206,13 @@ export default function UserManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.length > 0 ? (
+                  {isLoading ? (
+                     <TableRow>
+                        <TableCell colSpan={4} className="text-center h-24">
+                            <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                        </TableCell>
+                    </TableRow>
+                  ) : users.length > 0 ? (
                     users.map(user => (
                       <TableRow key={user.id}>
                         <TableCell className="font-mono">{user.username}</TableCell>
@@ -183,7 +225,7 @@ export default function UserManagementPage() {
                         <TableCell className="text-right space-x-2 flex items-center justify-end">
                           <Switch 
                             checked={user.status === 'active'}
-                            onCheckedChange={() => handleToggleStatus(user.id)}
+                            onCheckedChange={() => handleToggleStatus(user.id, user.status)}
                             aria-label={t('userManagement.toggleStatus')}
                           />
                           <Button variant="ghost" size="icon" onClick={() => handleRemoveUser(user.id)} aria-label={t('remove')}>

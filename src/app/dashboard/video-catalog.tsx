@@ -1,12 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { VideoCard, VideoCardSkeleton } from '@/components/video-card';
 import { useTranslation } from '@/hooks/use-translation';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-
-const VIDEOS_STORAGE_KEY = 'lan_stream_videos';
+import { Loader2 } from 'lucide-react';
 
 export interface Video {
   id: number;
@@ -16,9 +14,25 @@ export interface Video {
 }
 
 export function VideoCatalog() {
-  const [videos] = useLocalStorage<Video[]>(VIDEOS_STORAGE_KEY, []);
-  const [isLoading, setIsLoading] = useState(false);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/videos');
+            const data = await response.json();
+            setVideos(data);
+        } catch (error) {
+            console.error('Failed to fetch videos:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    fetchVideos();
+  }, []);
 
   if (isLoading) {
     return (

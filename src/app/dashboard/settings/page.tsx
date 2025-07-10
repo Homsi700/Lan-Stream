@@ -1,16 +1,15 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface VideoContent {
   id: number;
@@ -18,38 +17,67 @@ interface VideoContent {
   link: string;
 }
 
-const VIDEOS_STORAGE_KEY = 'lan_stream_videos';
-
 export default function SettingsPage() {
-  const [videos, setVideos] = useLocalStorage<VideoContent[]>(VIDEOS_STORAGE_KEY, []);
+  const [videos, setVideos] = useState<VideoContent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoLink, setNewVideoLink] = useState('');
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  const handleAddVideo = (e: React.FormEvent) => {
+  const fetchVideos = async () => {
+    setIsLoading(true);
+    try {
+        const response = await fetch('/api/videos');
+        const data = await response.json();
+        setVideos(data);
+    } catch(error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch videos.' });
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const handleAddVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVideoTitle || !newVideoLink) {
       toast({ variant: 'destructive', title: t('toast.formError.title'), description: t('toast.formError.description') });
       return;
     }
 
-    const newVideo: VideoContent = {
+    const newVideo: Omit<VideoContent, 'id'> & { id?: number } = {
       id: Date.now(),
       title: newVideoTitle,
       link: newVideoLink,
     };
     
-    setVideos([...videos, newVideo]);
-    setNewVideoTitle('');
-    setNewVideoLink('');
-    toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
+    try {
+      await fetch('/api/videos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newVideo),
+      });
+      await fetchVideos();
+      setNewVideoTitle('');
+      setNewVideoLink('');
+      toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to add video.' });
+    }
   };
 
-  const handleRemoveVideo = (id: number) => {
-    const updatedVideos = videos.filter(video => video.id !== id);
-    setVideos(updatedVideos);
-    toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
+  const handleRemoveVideo = async (id: number) => {
+    try {
+        await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+        await fetchVideos();
+        toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
+    } catch(error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to remove video.' });
+    }
   };
 
   return (
@@ -109,7 +137,13 @@ export default function SettingsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {videos.length > 0 ? (
+                       {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center h-24">
+                                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                                </TableCell>
+                            </TableRow>
+                        ) : videos.length > 0 ? (
                         videos.map(video => (
                           <TableRow key={video.id}>
                             <TableCell className="font-medium">{video.title}</TableCell>
