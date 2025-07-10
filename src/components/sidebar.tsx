@@ -2,6 +2,7 @@
 "use client";
 
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Sidebar,
   SidebarContent,
@@ -59,6 +60,8 @@ export function AppSidebar() {
       avatarFallback: 'C'
   };
   
+  const dashboardHref = userRole === 'admin' ? '/dashboard' : '/dashboard/client';
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -72,36 +75,48 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton 
-              href={userRole === 'admin' ? '/dashboard' : '/dashboard/client'}
-              isActive={pathname === '/dashboard' || pathname === '/dashboard/client'} 
-              tooltip={t('sidebar.dashboard')}
-            >
-              <Home />
-              <span>{t('sidebar.dashboard')}</span>
-            </SidebarMenuButton>
+            <Link href={dashboardHref} passHref>
+              <SidebarMenuButton 
+                isActive={pathname === dashboardHref || (userRole === 'user' && pathname === '/dashboard')}
+                tooltip={t('sidebar.dashboard')}
+                asChild
+              >
+                <div>
+                  <Home />
+                  <span>{t('sidebar.dashboard')}</span>
+                </div>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           {userRole === 'admin' && (
             <>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  href="/dashboard/user-management"
-                  isActive={pathname.startsWith('/dashboard/user-management')}
-                  tooltip={t('sidebar.userManagement')}
-                >
-                  <Users />
-                  <span>{t('sidebar.userManagement')}</span>
-                </SidebarMenuButton>
+                <Link href="/dashboard/user-management" passHref>
+                  <SidebarMenuButton 
+                    isActive={pathname.startsWith('/dashboard/user-management')}
+                    tooltip={t('sidebar.userManagement')}
+                     asChild
+                  >
+                    <div>
+                      <Users />
+                      <span>{t('sidebar.userManagement')}</span>
+                    </div>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  href="/dashboard/settings"
-                  isActive={pathname.startsWith('/dashboard/settings')}
-                  tooltip={t('sidebar.settings')}
-                >
-                  <Settings />
-                  <span>{t('sidebar.settings')}</span>
-                </SidebarMenuButton>
+                 <Link href="/dashboard/settings" passHref>
+                  <SidebarMenuButton 
+                    isActive={pathname.startsWith('/dashboard/settings')}
+                    tooltip={t('sidebar.settings')}
+                     asChild
+                  >
+                    <div>
+                      <Settings />
+                      <span>{t('sidebar.settings')}</span>
+                    </div>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
             </>
           )}
