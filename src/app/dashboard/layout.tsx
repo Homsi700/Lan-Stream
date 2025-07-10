@@ -25,20 +25,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
 
     const role = localStorage.getItem('user_role');
-    const adminRoutes = ['/dashboard', '/dashboard/user-management', '/dashboard/settings'];
-    const clientRoute = '/dashboard/client';
-
-    if (role === 'admin') {
-      if (pathname.startsWith(clientRoute)) {
+    const isClientPage = pathname.startsWith('/dashboard/client');
+    const isAdminPage = pathname.startsWith('/dashboard/user-management') || pathname.startsWith('/dashboard/settings');
+    
+    if (role === 'admin' && isClientPage) {
         router.replace('/dashboard');
         return;
-      }
-    } else if (role === 'user') {
-      if (adminRoutes.includes(pathname) || pathname.startsWith('/dashboard/user-management') || pathname.startsWith('/dashboard/settings')) {
-        router.replace(clientRoute);
+    }
+
+    if (role === 'user' && (isAdminPage || pathname === '/dashboard')) {
+        router.replace('/dashboard/client');
         return;
-      }
-    } else {
+    }
+
+    if (role !== 'admin' && role !== 'user') {
         router.replace('/');
         return;
     }
