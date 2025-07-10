@@ -1,9 +1,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { VideoCard, VideoCardSkeleton } from '@/components/video-card';
 import { useTranslation } from '@/hooks/use-translation';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 const VIDEOS_STORAGE_KEY = 'lan_stream_videos';
 
@@ -15,37 +16,11 @@ export interface Video {
 }
 
 export function VideoCatalog() {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isClient, setIsClient] = useState(false);
+  const [videos] = useLocalStorage<Video[]>(VIDEOS_STORAGE_KEY, []);
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useTranslation();
 
-  const loadVideos = () => {
-    const storedVideosRaw = localStorage.getItem(VIDEOS_STORAGE_KEY);
-    const storedVideos: Video[] = storedVideosRaw ? JSON.parse(storedVideosRaw) : [];
-    const videosWithFallbackSummary = storedVideos.map(v => ({...v, summary: v.title}));
-    setVideos(videosWithFallbackSummary);
-  }
-
-  useEffect(() => {
-    setIsClient(true);
-    loadVideos();
-    setIsLoading(false);
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === VIDEOS_STORAGE_KEY) {
-        loadVideos();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-  
-  if (!isClient || isLoading) {
+  if (isLoading) {
     return (
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {Array.from({ length: 8 }).map((_, i) => (

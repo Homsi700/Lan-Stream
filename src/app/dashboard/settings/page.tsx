@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface VideoContent {
   id: number;
@@ -20,26 +21,11 @@ interface VideoContent {
 const VIDEOS_STORAGE_KEY = 'lan_stream_videos';
 
 export default function SettingsPage() {
-  const [videos, setVideos] = useState<VideoContent[]>([]);
+  const [videos, setVideos] = useLocalStorage<VideoContent[]>(VIDEOS_STORAGE_KEY, []);
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoLink, setNewVideoLink] = useState('');
-  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    // Ensure this runs only on the client
-    setIsClient(true);
-    const storedVideos = localStorage.getItem(VIDEOS_STORAGE_KEY);
-    if (storedVideos) {
-      setVideos(JSON.parse(storedVideos));
-    }
-  }, []);
-
-  const persistVideos = (updatedVideos: VideoContent[]) => {
-      localStorage.setItem(VIDEOS_STORAGE_KEY, JSON.stringify(updatedVideos));
-      setVideos(updatedVideos);
-  }
 
   const handleAddVideo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +40,7 @@ export default function SettingsPage() {
       link: newVideoLink,
     };
     
-    persistVideos([...videos, newVideo]);
+    setVideos([...videos, newVideo]);
     setNewVideoTitle('');
     setNewVideoLink('');
     toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
@@ -62,13 +48,9 @@ export default function SettingsPage() {
 
   const handleRemoveVideo = (id: number) => {
     const updatedVideos = videos.filter(video => video.id !== id);
-    persistVideos(updatedVideos);
+    setVideos(updatedVideos);
     toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
   };
-
-  if (!isClient) {
-    return null; // Or a loading skeleton
-  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">

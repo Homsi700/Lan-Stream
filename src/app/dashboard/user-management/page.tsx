@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { add } from 'date-fns';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface User {
   id: number;
@@ -26,29 +27,13 @@ interface User {
 const USERS_STORAGE_KEY = 'lan_stream_users';
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useLocalStorage<User[]>(USERS_STORAGE_KEY, []);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [subscriptionPeriod, setSubscriptionPeriod] = useState('1_month');
   const [showPassword, setShowPassword] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const { t, language } = useTranslation();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-        if (storedUsers) {
-            setUsers(JSON.parse(storedUsers));
-        }
-        setIsClient(true);
-    }
-  }, []);
-
-  const persistUsers = (updatedUsers: User[]) => {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-  }
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +61,7 @@ export default function UserManagementPage() {
       expiresAt: expiresAt
     };
     
-    persistUsers([...users, newUser]);
+    setUsers([...users, newUser]);
     setNewUsername('');
     setNewPassword('');
     toast({ title: t('toast.userAdded.title'), description: t('toast.userAdded.description') });
@@ -84,7 +69,7 @@ export default function UserManagementPage() {
 
   const handleRemoveUser = (id: number) => {
     const updatedUsers = users.filter(user => user.id !== id);
-    persistUsers(updatedUsers);
+    setUsers(updatedUsers);
     toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
   };
 
@@ -95,7 +80,7 @@ export default function UserManagementPage() {
           }
           return user;
       });
-      persistUsers(updatedUsers);
+      setUsers(updatedUsers);
       toast({ title: t('userManagement.toast.statusChanged.title'), description: t('userManagement.toast.statusChanged.description') });
   };
 
@@ -108,10 +93,6 @@ export default function UserManagementPage() {
           return <Badge className="bg-green-500 hover:bg-green-600">{t('userManagement.status.active')}</Badge>;
       }
       return <Badge variant="secondary">{t('userManagement.status.inactive')}</Badge>;
-  }
-
-  if (!isClient) {
-    return null; // Don't render on the server
   }
 
   return (
