@@ -1,8 +1,6 @@
 
 "use client";
 import UserManagementForm from "@/components/user-management-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
 export default function UserManagementPage() {

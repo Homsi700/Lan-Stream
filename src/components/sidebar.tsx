@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users } from 'lucide-react';
+import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users, ShieldCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from './ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
@@ -82,6 +82,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           {userRole === 'admin' && (
+            <>
             <SidebarMenuItem>
               <SidebarMenuButton 
                 href="/dashboard/user-management"
@@ -92,6 +93,17 @@ export function AppSidebar() {
                 <span>{t('sidebar.userManagement')}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                href="/dashboard/settings/access-control"
+                isActive={pathname.startsWith('/dashboard/settings/access-control')}
+                tooltip={t('sidebar.accessControl')}
+              >
+                <ShieldCheck />
+                <span>{t('sidebar.accessControl')}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            </>
           )}
         </SidebarMenu>
       </SidebarContent>
