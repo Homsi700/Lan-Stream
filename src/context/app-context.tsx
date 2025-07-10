@@ -2,6 +2,7 @@
 "use client";
 
 import { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
+import React from 'react';
 import type { Language } from '@/lib/i18n';
 
 type Theme = 'light' | 'dark';
