@@ -1,15 +1,20 @@
+
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/sidebar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Clapperboard } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
+import { useAppContext } from '@/context/app-context';
+
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
+  const { t } = useTranslation();
+  const { language, theme } = useAppContext();
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
@@ -20,11 +25,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [router]);
 
+  useEffect(() => {
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+  }, [language, theme]);
+
+
   if (!isAuth) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background gap-4">
         <Clapperboard className="h-16 w-16 text-primary animate-pulse" />
-        <p className="text-muted-foreground">Verifying access...</p>
+        <p className="text-muted-foreground">{t('verifyingAccess')}</p>
       </div>
     );
   }

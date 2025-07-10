@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -9,8 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Monitor, Wifi } from "lucide-react";
+import { useTranslation } from '@/hooks/use-translation';
+
 
 interface VideoPlayerProps {
   videoSrc: string;
@@ -18,6 +20,7 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
   const [resolution, setResolution] = useState("1080");
+  const { t } = useTranslation();
 
   return (
     <div className="w-full max-w-6xl aspect-video bg-black flex flex-col items-center justify-center p-4">
@@ -32,7 +35,7 @@ export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
         >
           {/* Using a placeholder video since we can't package one. */}
           <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
+          {t('videoPlayer.browserNotSupported')}
         </video>
         <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Card className="bg-black/50 backdrop-blur-sm border-white/20 text-white">
@@ -46,7 +49,7 @@ export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
                              <Monitor className="h-5 w-5"/>
                             <Select value={resolution} onValueChange={setResolution}>
                             <SelectTrigger className="w-[120px] bg-transparent border-white/30 focus:ring-primary">
-                                <SelectValue placeholder="Resolution" />
+                                <SelectValue placeholder={t('videoPlayer.resolution')} />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="1080">1080p HD</SelectItem>
@@ -56,7 +59,7 @@ export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
                             </Select>
                         </div>
                     </div>
-                     <p className="text-xs text-white/60 mt-2">Adaptive bitrate simulation</p>
+                     <p className="text-xs text-white/60 mt-2">{t('videoPlayer.adaptiveBitrate')}</p>
                 </CardContent>
             </Card>
         </div>

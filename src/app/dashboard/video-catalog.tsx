@@ -1,26 +1,42 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { summarizeVideos, type VideoSummaryOutput } from '@/ai/flows/video-summary';
 import { VideoCard, VideoCardSkeleton } from '@/components/video-card';
+import { useTranslation } from '@/hooks/use-translation';
 
-const mockVideos = [
-  { id: '1', title: 'Company All-Hands Q1', description: 'Quarterly all-hands meeting covering Q1 results and Q2 roadmap.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'corporate meeting' },
-  { id: '2', title: 'New Employee Onboarding', description: 'A welcome video for new hires, covering company culture and policies.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'office teamwork' },
-  { id: '3', title: 'Product X Launch Event', description: 'The official launch event for our new Product X.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'product launch' },
-  { id: '4', title: 'Advanced Security Training', description: 'Mandatory security training for all engineering staff.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'cyber security' },
-  { id: '5', title: 'Marketing Strategy 2024', description: 'Deep dive into the marketing strategies for the upcoming year.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'marketing strategy' },
-  { id: '6', title: 'Team Building Workshop', description: 'Highlights from the annual team building workshop.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'team building' }
-];
+const mockVideosData = {
+  en: [
+    { id: '1', title: 'Company All-Hands Q1', description: 'Quarterly all-hands meeting covering Q1 results and Q2 roadmap.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'corporate meeting' },
+    { id: '2', title: 'New Employee Onboarding', description: 'A welcome video for new hires, covering company culture and policies.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'office teamwork' },
+    { id: '3', title: 'Product X Launch Event', description: 'The official launch event for our new Product X.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'product launch' },
+    { id: '4', title: 'Advanced Security Training', description: 'Mandatory security training for all engineering staff.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'cyber security' },
+    { id: '5', title: 'Marketing Strategy 2024', description: 'Deep dive into the marketing strategies for the upcoming year.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'marketing strategy' },
+    { id: '6', title: 'Team Building Workshop', description: 'Highlights from the annual team building workshop.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'team building' }
+  ],
+  ar: [
+    { id: '1', title: 'اجتماع الشركة الربع الأول', description: 'الاجتماع الفصلي الشامل الذي يغطي نتائج الربع الأول وخارطة طريق الربع الثاني.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'corporate meeting' },
+    { id: '2', title: 'تأهيل الموظفين الجدد', description: 'فيديو ترحيبي للموظفين الجدد، يغطي ثقافة الشركة وسياساتها.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'office teamwork' },
+    { id: '3', title: 'حدث إطلاق المنتج X', description: 'حدث الإطلاق الرسمي لمنتجنا الجديد X.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'product launch' },
+    { id: '4', title: 'تدريب أمني متقدم', description: 'تدريب أمني إلزامي لجميع الموظفين الهندسيين.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'cyber security' },
+    { id: '5', title: 'استراتيجية التسويق 2024', description: 'نظرة عميقة في استراتيجيات التسويق للعام القادم.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'marketing strategy' },
+    { id: '6', title: 'ورشة عمل بناء الفريق', description: 'أبرز لقطات من ورشة العمل السنوية لبناء الفريق.', thumbnailUrl: 'https://placehold.co/600x400.png', dataAiHint: 'team building' }
+  ]
+};
 
-export type Video = typeof mockVideos[0] & { summary?: string };
+
+export type Video = (typeof mockVideosData.en)[0] & { summary?: string };
 
 export function VideoCatalog() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { language } = useTranslation();
 
   useEffect(() => {
     const fetchSummaries = async () => {
+      setIsLoading(true);
+      const mockVideos = mockVideosData[language];
       try {
         const videoTitles = mockVideos.map(v => v.title);
         const videoDescriptions = mockVideos.map(v => v.description);
@@ -46,7 +62,7 @@ export function VideoCatalog() {
       }
     };
     fetchSummaries();
-  }, []);
+  }, [language]);
 
   if (isLoading) {
     return (

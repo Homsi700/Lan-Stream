@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface Address {
   id: number;
@@ -25,6 +27,7 @@ export default function AccessControlForm() {
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [newAddress, setNewAddress] = useState('');
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleAddAddress = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +38,12 @@ export default function AccessControlForm() {
     const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(newAddress);
 
     if (!isMac && !isIp) {
-      toast({ variant: 'destructive', title: 'Invalid Address', description: 'Please enter a valid IP or MAC address.' });
+      toast({ variant: 'destructive', title: t('toast.invalidAddress.title'), description: t('toast.invalidAddress.description') });
       return;
     }
     
     if (addresses.some(addr => addr.value === newAddress)) {
-        toast({ variant: 'destructive', title: 'Address exists', description: 'This address is already on the list.' });
+        toast({ variant: 'destructive', title: t('toast.addressExists.title'), description: t('toast.addressExists.description') });
         return;
     }
 
@@ -52,36 +55,36 @@ export default function AccessControlForm() {
 
     setAddresses([...addresses, newEntry]);
     setNewAddress('');
-    toast({ title: 'Address Added', description: `${newEntry.value} has been added to the allow list.` });
+    toast({ title: t('toast.addressAdded.title'), description: `${newEntry.value} ${t('toast.addressAdded.description')}` });
   };
 
   const handleRemoveAddress = (id: number) => {
     const addressToRemove = addresses.find(addr => addr.id === id);
     setAddresses(addresses.filter(addr => addr.id !== id));
     if(addressToRemove) {
-        toast({ title: 'Address Removed', description: `${addressToRemove.value} has been removed.` });
+        toast({ title: t('toast.addressRemoved.title'), description: `${addressToRemove.value} ${t('toast.addressRemoved.description')}` });
     }
   };
 
   return (
     <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle>Approved Addresses</CardTitle>
-        <CardDescription>Manage the list of IP and MAC addresses that are permitted to access content.</CardDescription>
+        <CardTitle>{t('accessControl.form.title')}</CardTitle>
+        <CardDescription>{t('accessControl.form.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAddAddress} className="flex items-end gap-2 mb-6">
           <div className="flex-1">
-            <Label htmlFor="new-address" className="sr-only">New Address</Label>
+            <Label htmlFor="new-address" className="sr-only">{t('accessControl.form.newAddressLabel')}</Label>
             <Input
               id="new-address"
-              placeholder="Enter IP or MAC address"
+              placeholder={t('accessControl.form.newAddressPlaceholder')}
               value={newAddress}
               onChange={(e) => setNewAddress(e.target.value)}
             />
           </div>
           <Button type="submit">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add
+            <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('add')}
           </Button>
         </form>
 
@@ -89,9 +92,9 @@ export default function AccessControlForm() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Address</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('accessControl.table.address')}</TableHead>
+                <TableHead>{t('accessControl.table.type')}</TableHead>
+                <TableHead className="text-right">{t('accessControl.table.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,7 +106,7 @@ export default function AccessControlForm() {
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleRemoveAddress(addr.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
-                        <span className="sr-only">Remove</span>
+                        <span className="sr-only">{t('remove')}</span>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -111,7 +114,7 @@ export default function AccessControlForm() {
               ) : (
                 <TableRow>
                     <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
-                        No addresses on the allow list.
+                        {t('accessControl.table.noAddresses')}
                     </TableCell>
                 </TableRow>
               )}
