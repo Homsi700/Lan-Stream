@@ -1,5 +1,7 @@
 
 "use client";
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { VideoPlayer } from '@/components/video-player';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -16,16 +18,25 @@ const mockVideos = [
   { id: '6', title: 'Team Building Workshop', title_ar: 'ورشة عمل بناء الفريق', src: '/placeholder-video.mp4' }
 ];
 
-export default function WatchPage({ params }: { params: { id: string } }) {
+export default function WatchPage() {
+  const params = useParams();
   const { t, language } = useTranslation();
-  const video = mockVideos.find(v => v.id === params.id) || mockVideos[0];
+  const [backLink, setBackLink] = useState('/dashboard');
+
+  useEffect(() => {
+    const role = localStorage.getItem('user_role');
+    setBackLink(role === 'admin' ? '/dashboard' : '/dashboard/client');
+  }, []);
+  
+  const videoId = typeof params.id === 'string' ? params.id : '';
+  const video = mockVideos.find(v => v.id === videoId) || mockVideos[0];
   const videoTitle = language === 'ar' ? video.title_ar : video.title;
 
   return (
     <div className="flex flex-col h-screen bg-black">
       <header className="flex-shrink-0 p-4 bg-gray-900/50 text-white flex items-center justify-between z-10">
         <Button asChild variant="ghost" className="hover:bg-white/10">
-            <Link href="/dashboard">
+            <Link href={backLink}>
                 <ArrowLeft className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
                 {t('watch.backToCatalog')}
             </Link>
