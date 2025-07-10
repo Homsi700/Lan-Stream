@@ -11,8 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
-// In a real app, users would be fetched from a database.
-// For this prototype, we'll simulate a user store.
 const USERS_STORAGE_KEY = 'lan_stream_users';
 
 const getStoredUsers = () => {
@@ -39,31 +37,45 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
     setTimeout(() => {
+      // Admin user
+      if (username === 'admin' && password === 'password') {
+        toast({
+          title: t('toast.loginSuccess.title'),
+          description: t('toast.loginSuccess.description'),
+        });
+        localStorage.setItem("auth_token", `dummy_token_for_admin`);
+        localStorage.setItem("user_role", 'admin');
+        router.push("/dashboard");
+        return;
+      }
+
+      // Regular users
       const storedUsers = getStoredUsers();
-      const allUsers = [{ id: 0, username: 'admin', password: 'password' }, ...storedUsers];
-      
-      const foundUser = allUsers.find(
-        user => user.username === username && user.password === password
+      const foundUser = storedUsers.find(
+        (user: any) => user.username === username && user.password === password
       );
 
       if (foundUser) {
+        const isExpired = foundUser.expiresAt && new Date(foundUser.expiresAt) < new Date();
+        if (foundUser.status === 'inactive' || isExpired) {
+            toast({
+                variant: "destructive",
+                title: t('toast.accountError.title'),
+                description: t('toast.accountError.description'),
+            });
+            setIsLoading(false);
+            return;
+        }
+
         toast({
           title: t('toast.loginSuccess.title'),
           description: t('toast.loginSuccess.description'),
         });
         
-        const role = username === 'admin' ? 'admin' : 'user';
         localStorage.setItem("auth_token", `dummy_token_for_${username}`);
-        localStorage.setItem("user_role", role);
-
-        if (role === 'admin') {
-            router.push("/dashboard");
-        } else {
-            router.push("/dashboard/client");
-        }
-
+        localStorage.setItem("user_role", 'user');
+        router.push("/dashboard/client");
       } else {
         toast({
           variant: "destructive",

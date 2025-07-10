@@ -32,11 +32,36 @@ export const translations = {
           usernamePlaceholder: 'Enter a new username',
           passwordLabel: 'Password',
           passwordPlaceholder: 'Enter a password',
+          subscriptionLabel: 'Subscription Period',
+          subscriptionPlaceholder: 'Select a period',
       },
       table: {
           username: 'Username',
+          status: 'Status',
+          expiresOn: 'Expires On',
           actions: 'Actions',
           noUsers: 'No users have been added yet.',
+      },
+      status: {
+          active: 'Active',
+          inactive: 'Inactive',
+          expired: 'Expired',
+      },
+      periods: {
+          week: '1 Week',
+          month: '1 Month',
+          unlimited: 'Unlimited',
+      },
+      toggleStatus: 'Toggle user status',
+      toast: {
+          userExists: {
+            title: 'User Exists',
+            description: 'This username is already taken.',
+          },
+          statusChanged: {
+            title: 'Status Updated',
+            description: 'User status has been successfully changed.',
+          }
       }
     },
     sidebar: {
@@ -86,6 +111,10 @@ export const translations = {
         formError: {
             title: "Missing Information",
             description: "Please fill out all fields.",
+        },
+        accountError: {
+            title: "Access Denied",
+            description: "Your account is inactive or has expired. Please contact the administrator.",
         }
     }
   },
@@ -121,11 +150,36 @@ export const translations = {
           usernamePlaceholder: 'أدخل اسم مستخدم جديد',
           passwordLabel: 'كلمة المرور',
           passwordPlaceholder: 'أدخل كلمة المرور',
+          subscriptionLabel: 'فترة الاشتراك',
+          subscriptionPlaceholder: 'اختر فترة',
       },
       table: {
           username: 'اسم المستخدم',
+          status: 'الحالة',
+          expiresOn: 'تاريخ الانتهاء',
           actions: 'الإجراءات',
           noUsers: 'لم يتم إضافة أي مستخدمين بعد.',
+      },
+      status: {
+          active: 'نشط',
+          inactive: 'غير نشط',
+          expired: 'منتهي الصلاحية',
+      },
+      periods: {
+          week: 'أسبوع واحد',
+          month: 'شهر واحد',
+          unlimited: 'غير محدود',
+      },
+      toggleStatus: 'تبديل حالة المستخدم',
+      toast: {
+          userExists: {
+              title: 'المستخدم موجود',
+              description: 'اسم المستخدم هذا مستخدم بالفعل.',
+          },
+          statusChanged: {
+              title: 'تم تحديث الحالة',
+              description: 'تم تغيير حالة المستخدم بنجاح.',
+          }
       }
     },
     sidebar: {
@@ -175,6 +229,10 @@ export const translations = {
         formError: {
             title: "معلومات ناقصة",
             description: "يرجى ملء جميع الحقول.",
+        },
+        accountError: {
+            title: "الوصول مرفوض",
+            description: "حسابك غير نشط أو انتهت صلاحيته. يرجى الاتصال بالمسؤول.",
         }
     }
   },
