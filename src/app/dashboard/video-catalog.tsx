@@ -20,17 +20,29 @@ export function VideoCatalog() {
   const [isClient, setIsClient] = useState(false);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    setIsClient(true);
-    // This effect now specifically handles fetching and setting videos from localStorage
+  const loadVideos = () => {
     const storedVideosRaw = localStorage.getItem(VIDEOS_STORAGE_KEY);
     const storedVideos: Video[] = storedVideosRaw ? JSON.parse(storedVideosRaw) : [];
-    
-    // For now, we'll just use the title as summary. AI summary can be a separate feature.
     const videosWithFallbackSummary = storedVideos.map(v => ({...v, summary: v.title}));
-
     setVideos(videosWithFallbackSummary);
+  }
+
+  useEffect(() => {
+    setIsClient(true);
+    loadVideos();
     setIsLoading(false);
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === VIDEOS_STORAGE_KEY) {
+        loadVideos();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
   
   if (!isClient || isLoading) {
