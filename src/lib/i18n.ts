@@ -19,6 +19,8 @@ export const translations = {
     dashboard: {
       title: 'Video Catalog',
       subtitle: 'Browse and stream available content on the local network.',
+      clientTitle: 'Welcome!',
+      clientSubtitle: 'Browse and stream available content.',
     },
     userManagement: {
       title: 'User Management',
@@ -48,6 +50,10 @@ export const translations = {
         name: 'Admin User',
         email: 'admin@lanstream.local',
       },
+      clientUser: {
+        name: 'Client User',
+        email: 'client@lanstream.local',
+      }
     },
     videoCard: {
       watchNow: 'Watch Now',
@@ -102,6 +108,8 @@ export const translations = {
     dashboard: {
       title: 'كتالوج الفيديو',
       subtitle: 'تصفح وبث المحتوى المتاح على الشبكة المحلية.',
+      clientTitle: 'أهلاً بك!',
+      clientSubtitle: 'تصفح وبث المحتوى المتاح.',
     },
     userManagement: {
       title: 'إدارة المستخدمين',
@@ -131,6 +139,10 @@ export const translations = {
         name: 'المسؤول',
         email: 'admin@lanstream.local',
       },
+      clientUser: {
+          name: 'زبون',
+          email: 'client@lanstream.local',
+      }
     },
     videoCard: {
       watchNow: 'شاهد الآن',

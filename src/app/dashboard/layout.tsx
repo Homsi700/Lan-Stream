@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/sidebar';
 import { Clapperboard } from 'lucide-react';
@@ -12,6 +12,7 @@ import { useAppContext } from '@/context/app-context';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuth, setIsAuth] = useState(false);
   const { t } = useTranslation();
   const { language, theme } = useAppContext();
@@ -20,10 +21,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     if (!token) {
       router.replace('/');
-    } else {
-      setIsAuth(true);
+      return;
     }
-  }, [router]);
+    
+    const role = localStorage.getItem('user_role');
+    // If a normal user tries to access admin pages, redirect them
+    if (role === 'user' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/user-management'))) {
+        router.replace('/dashboard/client');
+        return;
+    }
+
+    // If an admin tries to access the client page, redirect them
+    if (role === 'admin' && pathname.startsWith('/dashboard/client')) {
+        router.replace('/dashboard');
+        return;
+    }
+
+    setIsAuth(true);
+  }, [router, pathname]);
 
   useEffect(() => {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';

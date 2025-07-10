@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,22 +14,36 @@ import { useTranslation } from '@/hooks/use-translation';
 interface User {
   id: number;
   username: string;
+  password?: string; // Password is now part of the user object
 }
 
-const initialUsers: User[] = [
-  { id: 1, username: 'viewer1' },
-  { id: 2, username: 'viewer2' },
-  { id: 3, username: 'testuser' },
-];
+const USERS_STORAGE_KEY = 'lan_stream_users';
 
 export default function UserManagementForm() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // Load users from localStorage on component mount
+    if (typeof window !== 'undefined') {
+        const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+        if (storedUsers) {
+            setUsers(JSON.parse(storedUsers));
+        }
+        setIsClient(true);
+    }
+  }, []);
 
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  const persistUsers = (updatedUsers: User[]) => {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+  }
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +52,7 @@ export default function UserManagementForm() {
       return;
     }
     
-    if (users.some(user => user.username === newUsername)) {
+    if (users.some(user => user.username === newUsername) || newUsername === 'admin') {
         toast({ variant: 'destructive', title: 'User Exists', description: 'This username is already taken.' });
         return;
     }
@@ -46,18 +60,24 @@ export default function UserManagementForm() {
     const newUser: User = {
       id: Date.now(),
       username: newUsername,
+      password: newPassword
     };
-
-    setUsers([...users, newUser]);
+    
+    persistUsers([...users, newUser]);
     setNewUsername('');
     setNewPassword('');
     toast({ title: t('toast.userAdded.title'), description: t('toast.userAdded.description') });
   };
 
   const handleRemoveUser = (id: number) => {
-    setUsers(users.filter(user => user.id !== id));
+    const updatedUsers = users.filter(user => user.id !== id);
+    persistUsers(updatedUsers);
     toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
   };
+
+  if (!isClient) {
+    return null; // Don't render on the server
+  }
 
   return (
     <Card className="shadow-lg">

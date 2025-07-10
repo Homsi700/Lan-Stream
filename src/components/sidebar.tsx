@@ -11,21 +11,28 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Clapperboard, Home, Settings, LogOut, Moon, Sun, Languages, Users } from 'lucide-react';
+import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from './ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
 import { useAppContext } from '@/context/app-context';
 import { Button } from './ui/button';
+import { useEffect, useState } from 'react';
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t, language, setLanguage } = useTranslation();
   const { theme, setTheme } = useAppContext();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+     setUserRole(localStorage.getItem('user_role'));
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
     router.push('/');
   };
 
@@ -38,6 +45,18 @@ export function AppSidebar() {
     setLanguage(newLang);
     document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = newLang;
+  };
+
+  const user = userRole === 'admin' ? {
+      name: t('sidebar.adminUser.name'),
+      email: t('sidebar.adminUser.email'),
+      avatar: 'https://placehold.co/100x100.png',
+      avatarFallback: 'A'
+  } : {
+      name: t('sidebar.clientUser.name'),
+      email: t('sidebar.clientUser.email'),
+      avatar: 'https://placehold.co/100x100.png',
+      avatarFallback: 'C'
   };
   
   return (
@@ -54,24 +73,26 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
-              href="/dashboard"
-              isActive={pathname === '/dashboard'} 
+              href={userRole === 'admin' ? '/dashboard' : '/dashboard/client'}
+              isActive={pathname === '/dashboard' || pathname === '/dashboard/client'} 
               tooltip={t('sidebar.dashboard')}
             >
               <Home />
               <span>{t('sidebar.dashboard')}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              href="/dashboard/user-management"
-              isActive={pathname.startsWith('/dashboard/user-management')}
-              tooltip={t('sidebar.userManagement')}
-            >
-              <Users />
-              <span>{t('sidebar.userManagement')}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {userRole === 'admin' && (
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                href="/dashboard/user-management"
+                isActive={pathname.startsWith('/dashboard/user-management')}
+                tooltip={t('sidebar.userManagement')}
+              >
+                <Users />
+                <span>{t('sidebar.userManagement')}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
@@ -89,12 +110,12 @@ export function AppSidebar() {
         <Separator className="my-2 bg-sidebar-border" />
          <div className="flex items-center gap-3 p-2">
             <Avatar className="h-9 w-9">
-                <AvatarImage src="https://placehold.co/100x100.png" alt="@admin" data-ai-hint="user avatar" />
-                <AvatarFallback>A</AvatarFallback>
+                <AvatarImage src={user.avatar} alt="@user" data-ai-hint="user avatar" />
+                <AvatarFallback>{user.avatarFallback}</AvatarFallback>
             </Avatar>
             <div className="overflow-hidden">
-                <p className="font-semibold truncate">{t('sidebar.adminUser.name')}</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">{t('sidebar.adminUser.email')}</p>
+                <p className="font-semibold truncate">{user.name}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
             </div>
         </div>
         <SidebarMenuButton onClick={handleLogout} variant="default" className="bg-sidebar-accent/50 hover:bg-sidebar-accent">

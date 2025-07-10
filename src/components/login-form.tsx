@@ -11,6 +11,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
+// In a real app, users would be fetched from a database.
+// For this prototype, we'll simulate a user store.
+const USERS_STORAGE_KEY = 'lan_stream_users';
+
+const getStoredUsers = () => {
+    if (typeof window === 'undefined') return [];
+    const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
+    try {
+        return usersJson ? JSON.parse(usersJson) : [];
+    } catch (e) {
+        return [];
+    }
+};
+
+
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
@@ -26,14 +41,29 @@ export function LoginForm() {
 
     // Simulate API call
     setTimeout(() => {
-      if (username === "admin" && password === "password") {
+      const storedUsers = getStoredUsers();
+      const allUsers = [{ id: 0, username: 'admin', password: 'password' }, ...storedUsers];
+      
+      const foundUser = allUsers.find(
+        user => user.username === username && user.password === password
+      );
+
+      if (foundUser) {
         toast({
           title: t('toast.loginSuccess.title'),
           description: t('toast.loginSuccess.description'),
         });
-        // In a real app, you'd get a token from the server
-        localStorage.setItem("auth_token", "dummy_token");
-        router.push("/dashboard");
+        
+        const role = username === 'admin' ? 'admin' : 'user';
+        localStorage.setItem("auth_token", `dummy_token_for_${username}`);
+        localStorage.setItem("user_role", role);
+
+        if (role === 'admin') {
+            router.push("/dashboard");
+        } else {
+            router.push("/dashboard/client");
+        }
+
       } else {
         toast({
           variant: "destructive",
@@ -58,7 +88,7 @@ export function LoginForm() {
             <Input
               id="username"
               type="text"
-              placeholder="admin"
+              placeholder={t('login.username')}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -71,7 +101,7 @@ export function LoginForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="password"
+                placeholder={t('login.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
