@@ -23,17 +23,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.replace('/');
       return;
     }
-    
-    const role = localStorage.getItem('user_role');
-    // If a normal user tries to access admin pages, redirect them
-    if (role === 'user' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/user-management') || pathname.startsWith('/dashboard/settings'))) {
-        router.replace('/dashboard/client');
-        return;
-    }
 
-    // If an admin tries to access the client page, redirect them
-    if (role === 'admin' && pathname.startsWith('/dashboard/client')) {
+    const role = localStorage.getItem('user_role');
+    const adminRoutes = ['/dashboard', '/dashboard/user-management', '/dashboard/settings'];
+    const clientRoute = '/dashboard/client';
+
+    if (role === 'admin') {
+      if (pathname.startsWith(clientRoute)) {
         router.replace('/dashboard');
+        return;
+      }
+    } else if (role === 'user') {
+      if (adminRoutes.includes(pathname) || pathname.startsWith('/dashboard/user-management') || pathname.startsWith('/dashboard/settings')) {
+        router.replace(clientRoute);
+        return;
+      }
+    } else {
+        router.replace('/');
         return;
     }
 
