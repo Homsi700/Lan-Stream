@@ -23,28 +23,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.replace('/');
       return;
     }
-
-    const role = localStorage.getItem('user_role');
-    const isClientPage = pathname.startsWith('/dashboard/client');
-    const isAdminPage = pathname.startsWith('/dashboard/user-management') || pathname.startsWith('/dashboard/settings');
-    
-    if (role === 'admin' && isClientPage) {
-        router.replace('/dashboard');
-        return;
-    }
-
-    if (role === 'user' && (isAdminPage || pathname === '/dashboard')) {
-        router.replace('/dashboard/client');
-        return;
-    }
-
-    if (role !== 'admin' && role !== 'user') {
-        router.replace('/');
-        return;
-    }
-
+    // Temporarily grant access to everyone for testing
     setIsAuth(true);
-  }, [router, pathname]);
+  }, [router]);
 
   useEffect(() => {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
