@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { summarizeVideos, type VideoSummaryOutput } from '@/ai/flows/video-summary';
 import { VideoCard, VideoCardSkeleton } from '@/components/video-card';
 import { useTranslation } from '@/hooks/use-translation';
 
@@ -23,64 +22,21 @@ export function VideoCatalog() {
 
   useEffect(() => {
     setIsClient(true);
+    // This effect now specifically handles fetching and setting videos from localStorage
+    const storedVideosRaw = localStorage.getItem(VIDEOS_STORAGE_KEY);
+    const storedVideos: Video[] = storedVideosRaw ? JSON.parse(storedVideosRaw) : [];
+    
+    // For now, we'll just use the title as summary. AI summary can be a separate feature.
+    const videosWithFallbackSummary = storedVideos.map(v => ({...v, summary: v.title}));
+
+    setVideos(videosWithFallbackSummary);
+    setIsLoading(false);
   }, []);
   
-  useEffect(() => {
-    if (!isClient) return;
-
-    const fetchSummaries = async () => {
-      setIsLoading(true);
-      const storedVideosRaw = localStorage.getItem(VIDEOS_STORAGE_KEY);
-      const storedVideos: Video[] = storedVideosRaw ? JSON.parse(storedVideosRaw) : [];
-
-      if (storedVideos.length === 0) {
-        setVideos([]);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const videoTitles = storedVideos.map(v => v.title);
-        // Using title as a placeholder for description as we don't have descriptions field
-        const videoDescriptions = storedVideos.map(v => v.title);
-        
-        const result: VideoSummaryOutput = await summarizeVideos({ videoTitles, videoDescriptions });
-        
-        const videosWithSummaries = storedVideos.map((video, index) => ({
-          ...video,
-          summary: result.summaries[index] || t('videoCard.noSummary'),
-        }));
-        
-        setVideos(videosWithSummaries);
-      } catch (error) {
-        console.error('Failed to get video summaries:', error);
-        // Set videos with a fallback summary on error
-        const videosWithFallback = storedVideos.map(video => ({
-          ...video,
-          summary: video.title, // Fallback to title if summary fails
-        }));
-        setVideos(videosWithFallback);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSummaries();
-  }, [isClient, t]);
-
-  if (!isClient) {
+  if (!isClient || isLoading) {
     return (
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <VideoCardSkeleton key={i} />
-        ))}
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <VideoCardSkeleton key={i} />
         ))}
       </div>

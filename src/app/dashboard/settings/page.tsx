@@ -28,12 +28,11 @@ export default function SettingsPage() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const storedVideos = localStorage.getItem(VIDEOS_STORAGE_KEY);
-        if (storedVideos) {
-            setVideos(JSON.parse(storedVideos));
-        }
-        setIsClient(true);
+    // Ensure this runs only on the client
+    setIsClient(true);
+    const storedVideos = localStorage.getItem(VIDEOS_STORAGE_KEY);
+    if (storedVideos) {
+      setVideos(JSON.parse(storedVideos));
     }
   }, []);
 
@@ -68,7 +67,7 @@ export default function SettingsPage() {
   };
 
   if (!isClient) {
-    return null; 
+    return null; // Or a loading skeleton
   }
 
   return (
