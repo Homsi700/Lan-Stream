@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, Link, Upload } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface VideoContent {
   id: number;
@@ -22,6 +23,10 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoLink, setNewVideoLink] = useState('');
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -42,7 +47,7 @@ export default function SettingsPage() {
     fetchVideos();
   }, []);
 
-  const handleAddVideo = async (e: React.FormEvent) => {
+  const handleAddVideoByLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVideoTitle || !newVideoLink) {
       toast({ variant: 'destructive', title: t('toast.formError.title'), description: t('toast.formError.description') });
@@ -67,6 +72,43 @@ export default function SettingsPage() {
       toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
     } catch (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to add video.' });
+    }
+  };
+
+  const handleAddVideoByUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadTitle || !uploadFile) {
+        toast({ variant: 'destructive', title: t('toast.formError.title'), description: t('toast.formError.description') });
+        return;
+    }
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('title', uploadTitle);
+    formData.append('video', uploadFile);
+
+    try {
+        const response = await fetch('/api/videos/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Upload failed');
+        }
+
+        await fetchVideos();
+        setUploadTitle('');
+        setUploadFile(null);
+        // Reset file input
+        const fileInput = document.getElementById('upload-file') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+
+        toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Upload Error', description: error.message || 'Failed to upload video.' });
+    } finally {
+        setIsUploading(false);
     }
   };
 
@@ -95,29 +137,74 @@ export default function SettingsPage() {
             <CardDescription>{t('settings.newVideo.description')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAddVideo} className="grid md:grid-cols-3 gap-4 items-end">
-              <div className="space-y-2">
-                <Label htmlFor="new-video-title">{t('settings.newVideo.videoTitleLabel')}</Label>
-                <Input
-                  id="new-video-title"
-                  placeholder={t('settings.newVideo.videoTitlePlaceholder')}
-                  value={newVideoTitle}
-                  onChange={(e) => setNewVideoTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-video-link">{t('settings.newVideo.videoLinkLabel')}</Label>
-                <Input
-                  id="new-video-link"
-                  placeholder={t('settings.newVideo.videoLinkPlaceholder')}
-                  value={newVideoLink}
-                  onChange={(e) => setNewVideoLink(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.newVideo.addVideo')}
-              </Button>
-            </form>
+            <Tabs defaultValue="link" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="link"><Link className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.addByLink')}</TabsTrigger>
+                <TabsTrigger value="upload"><Upload className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.addByUpload')}</TabsTrigger>
+              </TabsList>
+              <TabsContent value="link" className="mt-6">
+                <form onSubmit={handleAddVideoByLink} className="grid md:grid-cols-3 gap-4 items-end">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="new-video-title">{t('settings.newVideo.videoTitleLabel')}</Label>
+                    <Input
+                      id="new-video-title"
+                      placeholder={t('settings.newVideo.videoTitlePlaceholder')}
+                      value={newVideoTitle}
+                      onChange={(e) => setNewVideoTitle(e.target.value)}
+                    />
+                  </div>
+                   <div className="space-y-2  md:col-span-3">
+                    <Label htmlFor="new-video-link">{t('settings.newVideo.videoLinkLabel')}</Label>
+                    <Input
+                      id="new-video-link"
+                      placeholder={t('settings.newVideo.videoLinkPlaceholder')}
+                      value={newVideoLink}
+                      onChange={(e) => setNewVideoLink(e.target.value)}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full md:col-start-3">
+                    <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.newVideo.addVideo')}
+                  </Button>
+                </form>
+              </TabsContent>
+              <TabsContent value="upload" className="mt-6">
+                <form onSubmit={handleAddVideoByUpload} className="grid md:grid-cols-3 gap-4 items-end">
+                   <div className="space-y-2">
+                    <Label htmlFor="upload-title">{t('settings.newVideo.videoTitleLabel')}</Label>
+                    <Input
+                      id="upload-title"
+                      placeholder={t('settings.newVideo.videoTitlePlaceholder')}
+                      value={uploadTitle}
+                      onChange={(e) => setUploadTitle(e.target.value)}
+                       disabled={isUploading}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="upload-file">{t('settings.upload.fileLabel')}</Label>
+                    <Input
+                      id="upload-file"
+                      type="file"
+                      accept="video/mp4,video/webm,video/ogg"
+                      onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
+                       disabled={isUploading}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full md:col-span-3" disabled={isUploading}>
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
+                        {t('settings.upload.uploading')}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                        {t('settings.upload.uploadAndAdd')}
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
