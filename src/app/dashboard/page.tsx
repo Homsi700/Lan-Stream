@@ -28,7 +28,10 @@ export default function DashboardPage() {
         let inactiveUsers = 0;
         let expiredUsers = 0;
 
-        users.forEach(u => {
+        // Filter out the admin user from stats
+        const clientUsers = users.filter(u => u.username !== 'admin');
+
+        clientUsers.forEach(u => {
             const isExpired = u.expiresAt && new Date(u.expiresAt) < new Date();
             if (isExpired) {
                 expiredUsers++;
@@ -60,7 +63,7 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
