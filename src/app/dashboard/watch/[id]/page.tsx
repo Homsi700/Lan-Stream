@@ -36,20 +36,10 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
 }
 
 const isIpCamStream = (url: string): boolean => {
-    // Regex to check for http(s)://<ip-address>:<port>/...
-    // This is a simple check. It matches common IP camera stream URLs.
-    const ipCamRegex = /^(https?:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\/?.*$/;
-    try {
-        // Exclude common video file extensions and HLS manifests
-        const urlObj = new URL(url);
-        const path = urlObj.pathname;
-        if (path.endsWith('.mp4') || path.endsWith('.webm') || path.endsWith('.m3u8')) {
-            return false;
-        }
-    } catch (e) {
-        // If URL is invalid, it's not a valid stream link
-        return false;
-    }
+    // A more robust regex to check for http(s)://<ip-address>:<port>/...
+    // This is the correct way to detect an IP camera stream URL without
+    // failing on the new URL() constructor for local IPs.
+    const ipCamRegex = /^(https?:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\b.*/;
     return ipCamRegex.test(url);
 }
 
