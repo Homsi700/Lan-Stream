@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
@@ -54,7 +53,6 @@ export async function POST(req: NextRequest) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
     
-    // FFmpeg command to create multiple resolutions
     const resolutions = [
         { name: '360p', w: 640, h: 360, bv: '800k', maxrate: '856k', bufsize: '1200k', ba: '96k' },
         { name: '480p', w: 842, h: 480, bv: '1400k', maxrate: '1498k', bufsize: '2100k', ba: '128k' },

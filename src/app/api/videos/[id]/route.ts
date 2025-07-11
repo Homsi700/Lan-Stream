@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
@@ -31,7 +30,6 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   if (videos.length < initialLength && videoToDelete) {
     writeVideos(videos);
     
-    // Also delete the stream directory if it exists
     if (videoToDelete.link && videoToDelete.link.startsWith('/streams/')) {
         const streamId = videoToDelete.link.split('/')[2];
         const dirToDelete = path.join(streamDir, streamId);
