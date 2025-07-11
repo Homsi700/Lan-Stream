@@ -55,7 +55,7 @@ export function AppSidebar() {
             avatarFallback: username ? username.charAt(0).toUpperCase() : 'C'
          });
      }
-  }, [language, t]);
+  }, [language]);
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
