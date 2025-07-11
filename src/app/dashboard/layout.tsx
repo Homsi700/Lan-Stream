@@ -8,12 +8,15 @@ import { AppSidebar } from '@/components/sidebar';
 import { Clapperboard } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { useAppContext } from '@/context/app-context';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileHeader } from '@/components/mobile-header';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   const { t } = useTranslation();
   const { language, theme } = useAppContext();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // This check runs on the client-side
@@ -48,8 +51,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <AppSidebar />
-        <SidebarInset className="bg-background">
-          {children}
+        <SidebarInset className="bg-background flex flex-col">
+          {isMobile && <MobileHeader />}
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>
