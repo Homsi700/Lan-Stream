@@ -59,15 +59,20 @@ export async function POST(req: NextRequest) {
         { name: '480p', w: 842, h: 480, bv: '1400k', maxrate: '1498k', bufsize: '2100k', ba: '128k' },
         { name: '720p', w: 1280, h: 720, bv: '2800k', maxrate: '2996k', bufsize: '4200k', ba: '128k' },
     ];
+    
+    // Correctly build the filter_complex and mapping for multiple outputs
+    const filterComplex = resolutions
+      .map((res, i) => `[0:v]scale=w=${res.w}:h=${res.h}:force_original_aspect_ratio=decrease,pad=w=${res.w}:h=${res.h}:x=(ow-iw)/2:y=(oh-ih)/2[v${i}]`)
+      .join(';');
 
-    const ffmpegCommands = resolutions.map(res => 
-        `-vf "scale=w=${res.w}:h=${res.h}:force_original_aspect_ratio=decrease,pad=w=${res.w}:h=${res.h}:x=(ow-iw)/2:y=(oh-ih)/2" ` +
-        `-c:a aac -ar 48000 -b:a ${res.ba} ` +
-        `-c:v h264 -profile:v main -crf 20 -g 48 -keyint_min 48 -sc_threshold 0 -b:v ${res.bv} -maxrate ${res.maxrate} -bufsize ${res.bufsize} ` +
+    const mapCommands = resolutions
+      .map((res, i) => 
+        `-map "[v${i}]" -c:v h264 -profile:v main -crf 20 -g 48 -keyint_min 48 -sc_threshold 0 -b:v ${res.bv} -maxrate ${res.maxrate} -bufsize ${res.bufsize} ` +
+        `-map a:0 -c:a aac -ar 48000 -b:a ${res.ba} `+
         `-hls_time 10 -hls_playlist_type vod -hls_segment_filename "${path.join(outputDir, res.name)}_%03d.ts" "${path.join(outputDir, res.name)}.m3u8"`
-    ).join(' ');
+      ).join(' ');
 
-    const finalFfmpegCommand = `ffmpeg -i "${tempFilePath}" ${ffmpegCommands}`;
+    const finalFfmpegCommand = `ffmpeg -i "${tempFilePath}" -filter_complex "${filterComplex}" ${mapCommands}`;
     
     console.log('Executing FFmpeg command:', finalFfmpegCommand);
     
