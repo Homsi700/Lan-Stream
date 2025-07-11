@@ -106,8 +106,6 @@ export const translations = {
             videoTitlePlaceholder: 'e.g., Company All-Hands Q1',
             videoLinkLabel: 'Video Stream Link',
             videoLinkPlaceholder: 'e.g., http://server/stream.mp4',
-            videoSummaryLabel: 'Video Summary (Optional)',
-            videoSummaryPlaceholder: 'Enter a short description of the video.',
             addVideo: 'Add Video'
         },
         editVideo: {
@@ -154,13 +152,9 @@ export const translations = {
     },
     videoCard: {
       watchNow: 'Watch Now',
-      noSummary: 'No summary available.',
       noVideos: {
         title: 'The Catalog is Empty',
         description: 'The administrator has not added any videos yet.'
-      },
-      dialog: {
-        details: 'Details'
       }
     },
     watch: {
@@ -305,8 +299,6 @@ export const translations = {
             videoTitlePlaceholder: 'مثال: اجتماع الشركة للربع الأول',
             videoLinkLabel: 'رابط بث الفيديو',
             videoLinkPlaceholder: 'مثال: http://server/stream.mp4',
-            videoSummaryLabel: 'ملخص الفيديو (اختياري)',
-            videoSummaryPlaceholder: 'أدخل وصفًا قصيرًا للفيديو.',
             addVideo: 'إضافة فيديو'
         },
         editVideo: {
@@ -353,13 +345,9 @@ export const translations = {
     },
     videoCard: {
       watchNow: 'شاهد الآن',
-      noSummary: 'لا يوجد ملخص متاح.',
       noVideos: {
         title: 'الكتالوج فارغ',
         description: 'لم يقم المسؤول بإضافة أي فيديوهات بعد.'
-      },
-      dialog: {
-        details: 'تفاصيل'
       }
     },
     watch: {

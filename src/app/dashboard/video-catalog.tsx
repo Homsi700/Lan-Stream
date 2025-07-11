@@ -10,7 +10,6 @@ export interface Video {
   id: number;
   title: string;
   link: string;
-  summary?: string;
   thumbnail?: string;
   processing?: boolean;
 }
