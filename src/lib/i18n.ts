@@ -110,7 +110,6 @@ export const translations = {
         },
         editVideo: {
             title: 'Edit Video',
-            thumbnailUrl: 'Thumbnail URL',
         },
         upload: {
             fileLabel: 'Video File',
@@ -303,7 +302,6 @@ export const translations = {
         },
         editVideo: {
             title: 'تعديل الفيديو',
-            thumbnailUrl: 'رابط الصورة المصغرة',
         },
         upload: {
             fileLabel: 'ملف الفيديو',

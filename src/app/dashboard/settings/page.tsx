@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Loader2, Link, Upload, Cog, Signal, Pencil } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
@@ -24,8 +24,6 @@ interface VideoContent {
   username?: string;
   password?: string;
   processing?: boolean;
-  thumbnail?: string;
-  summary?: string;
 }
 
 export default function SettingsPage() {
@@ -83,7 +81,7 @@ export default function SettingsPage() {
       const response = await fetch('/api/videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Date.now(), thumbnail: `https://placehold.co/600x400.png`, ...videoData }),
+        body: JSON.stringify({ id: Date.now(), ...videoData }),
       });
        if (!response.ok) {
          throw new Error('Failed to add video');
@@ -250,15 +248,6 @@ export default function SettingsPage() {
                     onChange={(e) => setEditingVideo({...editingVideo, title: e.target.value})}
                 />
             </div>
-             <div>
-                <Label htmlFor="edit-video-thumbnail">{t('settings.editVideo.thumbnailUrl')}</Label>
-                <Input
-                    id="edit-video-thumbnail"
-                    placeholder="https://example.com/image.png"
-                    value={editingVideo.thumbnail?.includes('placehold.co') ? '' : editingVideo.thumbnail}
-                    onChange={(e) => setEditingVideo({...editingVideo, thumbnail: e.target.value})}
-                />
-            </div>
             { (editingVideo.type === 'link' || editingVideo.type === 'ipcam') && (
                 <div>
                     <Label htmlFor="edit-video-link">{t('settings.newVideo.videoLinkLabel')}</Label>
@@ -297,15 +286,6 @@ export default function SettingsPage() {
                   </div>
                 </>
             )}
-            <div>
-              <Label htmlFor="edit-video-summary">{t('videoCard.summary')}</Label>
-              <Textarea
-                id="edit-video-summary"
-                placeholder={t('videoCard.summaryPlaceholder')}
-                value={editingVideo.summary || ''}
-                onChange={(e) => setEditingVideo({...editingVideo, summary: e.target.value})}
-              />
-            </div>
             <DialogFooter>
                 <DialogClose asChild>
                     <Button type="button" variant="secondary">{t('cancel')}</Button>
