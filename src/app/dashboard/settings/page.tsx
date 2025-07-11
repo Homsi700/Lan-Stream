@@ -104,8 +104,10 @@ export default function SettingsPage() {
                 'Content-Type': 'multipart/form-data',
             },
             onUploadProgress: (progressEvent) => {
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 1));
-                setUploadProgress(percentCompleted);
+                if (progressEvent.total) {
+                  const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                  setUploadProgress(percentCompleted);
+                }
             },
         });
 
@@ -131,7 +133,10 @@ export default function SettingsPage() {
 
   const handleRemoveVideo = async (id: number) => {
     try {
-        await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          throw new Error('Failed to delete video');
+        }
         await fetchVideos();
         toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
     } catch(error) {
