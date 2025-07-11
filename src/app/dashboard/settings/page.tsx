@@ -249,9 +249,10 @@ export default function SettingsPage() {
                 />
             </div>
              <div>
-                <Label htmlFor="edit-video-thumbnail">Thumbnail URL</Label>
+                <Label htmlFor="edit-video-thumbnail">{t('settings.editVideo.thumbnailUrl')}</Label>
                 <Input
                     id="edit-video-thumbnail"
+                    placeholder="https://example.com/image.png"
                     value={editingVideo.thumbnail || ''}
                     onChange={(e) => setEditingVideo({...editingVideo, thumbnail: e.target.value})}
                 />
