@@ -5,6 +5,10 @@ export const translations = {
     verifyingAccess: 'Verifying access...',
     add: 'Add',
     remove: 'Remove',
+    edit: 'Edit',
+    cancel: 'Cancel',
+    saveChanges: 'Save Changes',
+    optional: 'optional',
     login: {
       subtitle: 'Sign in to access your internal video network.',
       welcome: 'Welcome',
@@ -32,9 +36,13 @@ export const translations = {
           usernamePlaceholder: 'Enter a new username',
           passwordLabel: 'Password',
           passwordPlaceholder: 'Enter a password',
+          passwordPlaceholderOptional: 'Enter new password (optional)',
           subscriptionLabel: 'Subscription Period',
           subscriptionPlaceholder: 'Select a period',
           deviceLimitLabel: 'Device Limit',
+      },
+      editUser: {
+        title: 'Edit User'
       },
       table: {
           username: 'Username',
@@ -63,6 +71,10 @@ export const translations = {
           statusChanged: {
             title: 'Status Updated',
             description: 'User status has been successfully changed.',
+          },
+          userUpdated: {
+            title: 'User Updated',
+            description: 'User details have been successfully saved.',
           }
       }
     },
@@ -80,6 +92,9 @@ export const translations = {
             videoLinkPlaceholder: 'e.g., http://server/stream.mp4',
             addVideo: 'Add Video'
         },
+        editVideo: {
+            title: 'Edit Video',
+        },
         upload: {
             fileLabel: 'Video File',
             uploadAndAdd: 'Upload and Add Video',
@@ -94,6 +109,10 @@ export const translations = {
             videoAdded: {
                 title: 'Video Added',
                 description: 'The new video has been added to the catalog.'
+            },
+            videoUpdated: {
+                title: 'Video Updated',
+                description: 'The video has been successfully updated.',
             }
         }
     },
@@ -163,6 +182,10 @@ export const translations = {
     verifyingAccess: 'يتم التحقق من الوصول...',
     add: 'إضافة',
     remove: 'إزالة',
+    edit: 'تعديل',
+    cancel: 'إلغاء',
+    saveChanges: 'حفظ التغييرات',
+    optional: 'اختياري',
     login: {
       subtitle: 'سجل الدخول للوصول إلى شبكة الفيديو الداخلية الخاصة بك.',
       welcome: 'أهلاً بك',
@@ -190,9 +213,13 @@ export const translations = {
           usernamePlaceholder: 'أدخل اسم مستخدم جديد',
           passwordLabel: 'كلمة المرور',
           passwordPlaceholder: 'أدخل كلمة المرور',
+          passwordPlaceholderOptional: 'أدخل كلمة مرور جديدة (اختياري)',
           subscriptionLabel: 'فترة الاشتراك',
           subscriptionPlaceholder: 'اختر فترة',
           deviceLimitLabel: 'عدد الأجهزة',
+      },
+      editUser: {
+        title: 'تعديل المستخدم'
       },
       table: {
           username: 'اسم المستخدم',
@@ -221,6 +248,10 @@ export const translations = {
           statusChanged: {
               title: 'تم تحديث الحالة',
               description: 'تم تغيير حالة المستخدم بنجاح.',
+          },
+          userUpdated: {
+            title: 'تم تحديث المستخدم',
+            description: 'تم حفظ تفاصيل المستخدم بنجاح.',
           }
       }
     },
@@ -238,6 +269,9 @@ export const translations = {
             videoLinkPlaceholder: 'مثال: http://server/stream.mp4',
             addVideo: 'إضافة فيديو'
         },
+        editVideo: {
+            title: 'تعديل الفيديو',
+        },
         upload: {
             fileLabel: 'ملف الفيديو',
             uploadAndAdd: 'رفع وإضافة الفيديو',
@@ -252,6 +286,10 @@ export const translations = {
             videoAdded: {
                 title: 'تمت إضافة الفيديو',
                 description: 'تمت إضافة الفيديو الجديد إلى الكتالوج.'
+            },
+            videoUpdated: {
+                title: 'تم تحديث الفيديو',
+                description: 'تم تحديث الفيديو بنجاح.',
             }
         }
     },

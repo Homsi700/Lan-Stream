@@ -8,12 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Eye, EyeOff, Loader2, Pencil } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { add } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { add, formatISO, parseISO } from 'date-fns';
 
 interface User {
   id: number;
@@ -32,6 +33,11 @@ export default function UserManagementPage() {
   const [subscriptionPeriod, setSubscriptionPeriod] = useState('1_month');
   const [deviceLimit, setDeviceLimit] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editShowPassword, setEditShowPassword] = useState(false);
+
   const { toast } = useToast();
   const { t, language } = useTranslation();
 
@@ -124,6 +130,50 @@ export default function UserManagementPage() {
       }
   };
 
+  const handleEditUser = (user: User) => {
+    setEditingUser({...user, password: ''}); // Clear password for security
+    setIsEditDialogOpen(true);
+  }
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    // Create a payload with only the fields that should be updated
+    const payload: Partial<User> = {
+      username: editingUser.username,
+      expiresAt: editingUser.expiresAt,
+      deviceLimit: editingUser.deviceLimit,
+    };
+
+    // Only include the password if a new one was entered
+    if (editingUser.password) {
+      payload.password = editingUser.password;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.status === 409) {
+        toast({ variant: 'destructive', title: t('userManagement.toast.userExists.title'), description: t('userManagement.toast.userExists.description') });
+        return;
+      }
+      if (!response.ok) throw new Error('Failed to update user');
+
+      await fetchUsers();
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      toast({ title: t('userManagement.toast.userUpdated.title'), description: t('userManagement.toast.userUpdated.description') });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update user.' });
+    }
+  };
+
+
   const getStatusBadge = (user: User) => {
       const isExpired = user.expiresAt && new Date(user.expiresAt) < new Date();
       if (isExpired) {
@@ -134,6 +184,46 @@ export default function UserManagementPage() {
       }
       return <Badge variant="secondary">{t('userManagement.status.inactive')}</Badge>;
   }
+
+  const renderEditForm = () => {
+    if (!editingUser) return null;
+
+    return (
+      <form onSubmit={handleUpdateUser} className="space-y-4">
+        <div>
+          <Label htmlFor="edit-username">{t('userManagement.form.usernameLabel')}</Label>
+          <Input id="edit-username" value={editingUser.username} onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}/>
+        </div>
+        <div>
+          <Label htmlFor="edit-password">{t('userManagement.form.passwordLabel')} ({t('optional')})</Label>
+          <div className="relative">
+            <Input id="edit-password" type={editShowPassword ? 'text' : 'password'} placeholder={t('userManagement.form.passwordPlaceholderOptional')} value={editingUser.password} onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })} />
+             <Button
+                type="button" variant="ghost" size="icon"
+                className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                onClick={() => setEditShowPassword(!editShowPassword)}
+              >
+                {editShowPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </Button>
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="edit-expiresAt">{t('userManagement.table.expiresOn')}</Label>
+          <Input id="edit-expiresAt" type="date" value={editingUser.expiresAt ? formatISO(parseISO(editingUser.expiresAt), { representation: 'date' }) : ''} onChange={(e) => setEditingUser({ ...editingUser, expiresAt: e.target.value ? new Date(e.target.value).toISOString() : null })} />
+        </div>
+        <div>
+          <Label htmlFor="edit-deviceLimit">{t('userManagement.form.deviceLimitLabel')}</Label>
+          <Input id="edit-deviceLimit" type="number" min="1" value={editingUser.deviceLimit} onChange={(e) => setEditingUser({ ...editingUser, deviceLimit: parseInt(e.target.value, 10) || 1 })} />
+        </div>
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">{t('cancel')}</Button>
+            </DialogClose>
+            <Button type="submit">{t('saveChanges')}</Button>
+        </DialogFooter>
+      </form>
+    );
+  };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -239,12 +329,16 @@ export default function UserManagementPage() {
                             : t('userManagement.periods.unlimited')}
                         </TableCell>
                         <TableCell className="text-center">{user.deviceLimit}</TableCell>
-                        <TableCell className="text-right space-x-2 flex items-center justify-end">
+                        <TableCell className="text-right space-x-0 flex items-center justify-end">
                           <Switch 
                             checked={user.status === 'active'}
                             onCheckedChange={() => handleToggleStatus(user.id, user.status)}
                             aria-label={t('userManagement.toggleStatus')}
+                            className="mr-2"
                           />
+                           <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)} aria-label={t('edit')}>
+                            <Pencil className="h-4 w-4 text-primary" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleRemoveUser(user.id)} aria-label={t('remove')}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
@@ -264,6 +358,15 @@ export default function UserManagementPage() {
           </CardContent>
         </Card>
       </div>
+
+       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('userManagement.editUser.title')}</DialogTitle>
+                </DialogHeader>
+                {renderEditForm()}
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }

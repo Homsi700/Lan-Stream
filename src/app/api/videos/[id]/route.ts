@@ -18,6 +18,21 @@ const writeVideos = (videos: any[]) => {
   fs.writeFileSync(videosFilePath, JSON.stringify(videos, null, 2));
 };
 
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const id = parseInt(params.id, 10);
+  const updatedVideoData = await request.json();
+  let videos = readVideos();
+  const videoIndex = videos.findIndex(video => video.id === id);
+
+  if (videoIndex > -1) {
+    videos[videoIndex] = { ...videos[videoIndex], ...updatedVideoData, id: id }; // Ensure ID is not changed
+    writeVideos(videos);
+    return NextResponse.json(videos[videoIndex], { status: 200 });
+  } else {
+    return NextResponse.json({ message: 'Video not found' }, { status: 404 });
+  }
+}
+
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
   let videos = readVideos();

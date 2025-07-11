@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Loader2, Link, Upload, Cog, Signal } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, Link, Upload, Cog, Signal, Pencil } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import axios from 'axios';
@@ -46,6 +47,9 @@ export default function SettingsPage() {
   const [webrtcPassword, setWebrtcPassword] = useState('');
   const [showWebRTCPassword, setShowWebRTCPassword] = useState(false);
 
+  // Edit states
+  const [editingVideo, setEditingVideo] = useState<VideoContent | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -134,7 +138,6 @@ export default function SettingsPage() {
     }
   };
 
-
   const handleAddVideoByUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadTitle || !uploadFile) {
@@ -149,9 +152,7 @@ export default function SettingsPage() {
 
     try {
         const response = await axios.post('/api/videos/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data', },
             onUploadProgress: (progressEvent) => {
                 if (progressEvent.total) {
                   const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -160,16 +161,12 @@ export default function SettingsPage() {
             },
         });
 
-        if (response.status !== 201) {
-             throw new Error(response.data.message || 'Upload failed');
-        }
-
+        if (response.status !== 201) { throw new Error(response.data.message || 'Upload failed'); }
         await fetchVideos();
         setUploadTitle('');
         setUploadFile(null);
         const fileInput = document.getElementById('upload-file') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
-
         toast({ title: t('settings.toast.videoAdded.title'), description: "Video is now processing in the background." });
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Upload Error', description: error.response?.data?.message || error.message || 'Failed to upload video.' });
@@ -182,13 +179,38 @@ export default function SettingsPage() {
   const handleRemoveVideo = async (id: number) => {
     try {
         const response = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
-        if (!response.ok) {
-          throw new Error('Failed to delete video');
-        }
+        if (!response.ok) { throw new Error('Failed to delete video'); }
         await fetchVideos();
         toast({ title: t('toast.userRemoved.title'), description: t('toast.userRemoved.description')});
     } catch(error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to remove video.' });
+    }
+  };
+
+  const handleEditVideo = (video: VideoContent) => {
+    setEditingVideo({...video});
+    setIsEditDialogOpen(true);
+  }
+
+  const handleUpdateVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVideo) return;
+
+    try {
+      const response = await fetch(`/api/videos/${editingVideo.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingVideo),
+      });
+
+      if (!response.ok) { throw new Error('Failed to update video'); }
+      
+      await fetchVideos();
+      setIsEditDialogOpen(false);
+      setEditingVideo(null);
+      toast({ title: t('settings.toast.videoUpdated.title'), description: t('settings.toast.videoUpdated.description') });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update video.' });
     }
   };
 
@@ -212,6 +234,67 @@ export default function SettingsPage() {
             return 'N/A';
     }
   };
+
+  const renderEditForm = () => {
+    if (!editingVideo) return null;
+
+    return (
+        <form onSubmit={handleUpdateVideo} className="space-y-4">
+            <div>
+                <Label htmlFor="edit-video-title">{t('settings.newVideo.videoTitleLabel')}</Label>
+                <Input
+                    id="edit-video-title"
+                    value={editingVideo.title}
+                    onChange={(e) => setEditingVideo({...editingVideo, title: e.target.value})}
+                />
+            </div>
+            { (editingVideo.type === 'link' || editingVideo.type === 'ipcam') && (
+                <div>
+                    <Label htmlFor="edit-video-link">{t('settings.newVideo.videoLinkLabel')}</Label>
+                    <Input
+                        id="edit-video-link"
+                        value={editingVideo.link || ''}
+                        onChange={(e) => setEditingVideo({...editingVideo, link: e.target.value})}
+                    />
+                </div>
+            )}
+            { editingVideo.type === 'webrtc' && (
+                <>
+                  <div>
+                      <Label htmlFor="edit-webrtc-url">Signaling Server URL</Label>
+                      <Input
+                          id="edit-webrtc-url"
+                          value={editingVideo.signalingUrl || ''}
+                          onChange={(e) => setEditingVideo({...editingVideo, signalingUrl: e.target.value})}
+                      />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-webrtc-username">Username (Optional)</Label>
+                    <Input 
+                      id="edit-webrtc-username"
+                      value={editingVideo.username || ''}
+                      onChange={(e) => setEditingVideo({...editingVideo, username: e.target.value})}
+                    />
+                  </div>
+                   <div>
+                    <Label htmlFor="edit-webrtc-password">Password (Optional)</Label>
+                    <Input
+                      id="edit-webrtc-password"
+                      value={editingVideo.password || ''}
+                      onChange={(e) => setEditingVideo({...editingVideo, password: e.target.value})}
+                    />
+                  </div>
+                </>
+            )}
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">{t('cancel')}</Button>
+                </DialogClose>
+                <Button type="submit">{t('saveChanges')}</Button>
+            </DialogFooter>
+        </form>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -360,6 +443,9 @@ export default function SettingsPage() {
                               {getVideoSourceInfo(video)}
                             </TableCell>
                             <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" onClick={() => handleEditVideo(video)} aria-label={t('edit')}>
+                                <Pencil className="h-4 w-4 text-primary" />
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => handleRemoveVideo(video.id)} aria-label={t('remove')}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -379,6 +465,14 @@ export default function SettingsPage() {
             </CardContent>
         </Card>
       </div>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{t('settings.editVideo.title')}</DialogTitle>
+            </DialogHeader>
+            {renderEditForm()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
