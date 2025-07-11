@@ -18,8 +18,7 @@ const writeUsers = (users: any[]) => {
 };
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const { id: paramId } = params;
-  const id = parseInt(paramId, 10);
+  const id = parseInt(params.id, 10);
   let users = readUsers();
   const initialLength = users.length;
   users = users.filter(user => user.id !== id);
@@ -33,8 +32,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-    const { id: paramId } = params;
-    const id = parseInt(paramId, 10);
+    const id = parseInt(params.id, 10);
     const { status } = await request.json();
     let users = readUsers();
     const userIndex = users.findIndex(user => user.id === id);

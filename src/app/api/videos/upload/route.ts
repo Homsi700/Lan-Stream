@@ -79,18 +79,27 @@ export async function POST(req: NextRequest) {
     // Execute FFmpeg (This can take a long time)
     // We don't await this, it runs in the background. We just add the video to the list.
     execPromise(finalFfmpegCommand)
-        .then(() => {
+        .then(({ stdout, stderr }) => {
             console.log(`Transcoding finished for ${title}`);
+             if (stderr) {
+                console.log(`FFmpeg stderr: ${stderr}`);
+            }
             // Create master playlist
             const masterPlaylistContent = '#EXTM3U\n' +
                 resolutions.map(res => `#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(res.bv, 10) * 1000},RESOLUTION=${res.w}x${res.h}\n${res.name}.m3u8`).join('\n');
             fs.writeFileSync(path.join(outputDir, 'master.m3u8'), masterPlaylistContent);
+            console.log(`Master playlist created for ${title}`);
         })
         .catch(err => {
-            console.error(`FFmpeg error for ${title}:`, err);
+            console.error(`\n--- FFmpeg Execution Error for video: "${title}" ---`);
+            console.error(`Error: ${err.message}`);
             if (err.message.includes('not recognized') || err.message.includes('not found')) {
                 console.error('Hint: FFmpeg might not be installed or is not in your system\'s PATH. Please check the README.md for installation instructions.');
+            } else if (err.code !== 0) {
+                 console.error('Hint: The transcoding process failed. This can be due to an invalid video file, insufficient system resources (CPU/RAM), or an issue with FFmpeg itself.');
+                 console.error(`FFmpeg stderr: ${err.stderr}`);
             }
+            console.error('--- End of FFmpeg Error ---\n');
         })
         .finally(() => {
             // Clean up temporary file

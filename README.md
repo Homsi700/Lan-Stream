@@ -10,6 +10,10 @@ This application uses FFmpeg for video transcoding to enable adaptive bitrate st
 
 **The video upload and streaming functionality will not work unless FFmpeg is installed on the server running the application.**
 
+### Performance Note
+
+Video transcoding is a very CPU-intensive process. The time it takes to process a video depends heavily on the video's length, resolution, and the processing power of the server. A slow or overheating CPU (e.g., due to a malfunctioning fan) can cause the process to take a very long time or fail entirely.
+
 ### Installation on Windows
 
 1.  **Download:** Go to the official FFmpeg download page: [https://ffmpeg.org/download.html#build-windows](https://ffmpeg.org/download.html#build-windows)

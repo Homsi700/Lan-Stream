@@ -29,9 +29,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   if (videos.length < initialLength && videoToDelete) {
     writeVideos(videos);
     
+    // If the video link points to a stream directory, delete it
     if (videoToDelete.link && videoToDelete.link.startsWith('/streams/')) {
         const streamId = videoToDelete.link.split('/')[2];
         const dirToDelete = path.join(streamDir, streamId);
+        
         if (fs.existsSync(dirToDelete)) {
             fs.rm(dirToDelete, { recursive: true, force: true }, (err) => {
                 if (err) {
