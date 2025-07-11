@@ -17,30 +17,36 @@ export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
     const video = videoRef.current;
     if (!video) return;
 
+    let hls: Hls | null = null;
+
     // Check if the source is an HLS manifest
-    if (videoSrc.endsWith('.m3u8')) {
+    if (videoSrc && videoSrc.includes('.m3u8')) {
       if (Hls.isSupported()) {
-        const hls = new Hls();
+        hls = new Hls();
         hls.loadSource(videoSrc);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play();
+          video.play().catch(e => console.error("Autoplay was prevented:", e));
         });
-        return () => {
-          hls.destroy();
-        };
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         // Native HLS support (e.g., Safari)
         video.src = videoSrc;
         video.addEventListener('loadedmetadata', () => {
-          video.play();
+          video.play().catch(e => console.error("Autoplay was prevented:", e));
         });
       }
     } else {
       // It's a regular MP4 or other direct video file
       video.src = videoSrc;
-      video.play();
+      video.play().catch(e => console.error("Autoplay was prevented:", e));
     }
+    
+    // Cleanup function
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
   }, [videoSrc]);
   
   return (
@@ -51,6 +57,7 @@ export function VideoPlayer({ videoSrc }: VideoPlayerProps) {
           className="w-full h-full rounded-lg shadow-2xl shadow-primary/20"
           controls
           autoPlay
+          playsInline
         >
           {t('videoPlayer.browserNotSupported')}
         </video>
