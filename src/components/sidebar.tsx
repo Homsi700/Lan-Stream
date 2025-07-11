@@ -55,14 +55,25 @@ export function AppSidebar() {
             avatarFallback: username ? username.charAt(0).toUpperCase() : 'C'
          });
      }
-  }, [language]);
+  }, [language, t]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_username');
-    localStorage.removeItem('user_expires_at');
-    router.push('/');
+  const handleLogout = async () => {
+    const username = localStorage.getItem("user_username");
+    try {
+        await fetch('/api/sessions', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username }),
+        });
+    } catch (error) {
+        console.error("Failed to clear session on logout:", error);
+    } finally {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_username');
+        localStorage.removeItem('user_expires_at');
+        router.push('/');
+    }
   };
 
   const toggleTheme = () => {

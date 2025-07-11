@@ -24,14 +24,28 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
+    const recordSession = async (user: string) => {
+        try {
+            await fetch('/api/sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user }),
+            });
+        } catch (error) {
+            console.error("Failed to record session:", error);
+        }
+    };
+
     // Admin user
     if (username === 'admin' && password === 'password') {
+      await recordSession('admin');
       toast({
         title: t('toast.loginSuccess.title'),
         description: t('toast.loginSuccess.description'),
       });
       localStorage.setItem("auth_token", `dummy_token_for_admin`);
       localStorage.setItem("user_role", 'admin');
+      localStorage.setItem("user_username", "admin");
       router.push("/dashboard");
       setIsLoading(false);
       return;
@@ -55,6 +69,7 @@ export function LoginForm() {
                     description: t('toast.accountError.description'),
                 });
             } else {
+                 await recordSession(foundUser.username);
                  toast({
                     title: t('toast.loginSuccess.title'),
                     description: t('toast.loginSuccess.description'),

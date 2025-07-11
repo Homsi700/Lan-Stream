@@ -25,6 +25,9 @@ export const translations = {
       subtitle: 'Browse and stream available content on the local network.',
       clientTitle: 'Welcome!',
       clientSubtitle: 'Browse and stream available content.',
+      stats: {
+        recentlyActive: 'Recently Active',
+      }
     },
     userManagement: {
       title: 'User Management',
@@ -214,6 +217,9 @@ export const translations = {
       subtitle: 'تصفح وبث المحتوى المتاح على الشبكة المحلية.',
       clientTitle: 'أهلاً بك!',
       clientSubtitle: 'تصفح وبث المحتوى المتاح.',
+       stats: {
+        recentlyActive: 'متصلون مؤخراً',
+      }
     },
     userManagement: {
       title: 'إدارة المستخدمين',
