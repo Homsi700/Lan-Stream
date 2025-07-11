@@ -55,7 +55,7 @@ export function AppSidebar() {
             avatarFallback: username ? username.charAt(0).toUpperCase() : 'C'
          });
      }
-  }, [language, t]);
+  }, [language]);
 
   const handleLogout = async () => {
     const username = localStorage.getItem("user_username");
