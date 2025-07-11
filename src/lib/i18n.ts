@@ -44,6 +44,11 @@ export const translations = {
       editUser: {
         title: 'Edit User'
       },
+      renewUser: {
+        title: 'Renew Subscription',
+        confirmation: 'Select a new subscription period for user',
+        renewButton: 'Renew',
+      },
       table: {
           username: 'Username',
           status: 'Status',
@@ -75,6 +80,13 @@ export const translations = {
           userUpdated: {
             title: 'User Updated',
             description: 'User details have been successfully saved.',
+          },
+          renewSuccess: {
+            title: 'Subscription Renewed',
+            description: 'The user subscription has been successfully renewed and activated.',
+          },
+          renewError: {
+            description: 'Failed to renew user subscription.',
           }
       }
     },
@@ -221,6 +233,11 @@ export const translations = {
       editUser: {
         title: 'تعديل المستخدم'
       },
+      renewUser: {
+        title: 'تجديد الاشتراك',
+        confirmation: 'اختر فترة اشتراك جديدة للمستخدم',
+        renewButton: 'تجديد',
+      },
       table: {
           username: 'اسم المستخدم',
           status: 'الحالة',
@@ -252,6 +269,13 @@ export const translations = {
           userUpdated: {
             title: 'تم تحديث المستخدم',
             description: 'تم حفظ تفاصيل المستخدم بنجاح.',
+          },
+          renewSuccess: {
+            title: 'تم تجديد الاشتراك',
+            description: 'تم تجديد وتفعيل اشتراك المستخدم بنجاح.',
+          },
+          renewError: {
+            description: 'فشل تجديد اشتراك المستخدم.',
           }
       }
     },

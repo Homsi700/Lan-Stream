@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { add } from 'date-fns';
 
 const usersFilePath = path.join(process.cwd(), 'src', 'data', 'users.json');
 
@@ -64,12 +65,25 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 
 export async function PATCH(request: Request, { params }: { params: { id:string } }) {
     const id = parseInt(params.id, 10);
-    const { status } = await request.json();
+    const { status, renewalPeriod } = await request.json();
     let users = readUsers();
     const userIndex = users.findIndex(user => user.id === id);
 
     if (userIndex > -1) {
-        users[userIndex].status = status;
+        if (status) {
+            users[userIndex].status = status;
+        }
+
+        if (renewalPeriod) {
+            let newExpiresAt: string | null = null;
+            if (renewalPeriod !== 'unlimited') {
+                const [amount, unit] = renewalPeriod.split('_');
+                newExpiresAt = add(new Date(), { [unit + 's']: parseInt(amount) }).toISOString();
+            }
+            users[userIndex].expiresAt = newExpiresAt;
+            users[userIndex].status = 'active'; // Always reactivate on renewal
+        }
+        
         writeUsers(users);
         return NextResponse.json(users[userIndex], { status: 200 });
     } else {

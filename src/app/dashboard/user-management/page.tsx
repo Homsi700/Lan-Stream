@@ -8,12 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Eye, EyeOff, Loader2, Pencil } from 'lucide-react';
+import { PlusCircle, Trash2, Eye, EyeOff, Loader2, Pencil, History } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { add, formatISO, parseISO } from 'date-fns';
 
 interface User {
@@ -37,6 +37,11 @@ export default function UserManagementPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editShowPassword, setEditShowPassword] = useState(false);
+  
+  const [renewingUser, setRenewingUser] = useState<User | null>(null);
+  const [isRenewDialogOpen, setIsRenewDialogOpen] = useState(false);
+  const [renewalPeriod, setRenewalPeriod] = useState('1_month');
+
 
   const { toast } = useToast();
   const { t, language } = useTranslation();
@@ -135,6 +140,32 @@ export default function UserManagementPage() {
     setIsEditDialogOpen(true);
   }
 
+  const handleRenewUser = (user: User) => {
+    setRenewingUser(user);
+    setRenewalPeriod('1_month');
+    setIsRenewDialogOpen(true);
+  };
+
+  const handleConfirmRenewal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renewingUser) return;
+
+    try {
+        await fetch(`/api/users/${renewingUser.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ renewalPeriod: renewalPeriod }),
+        });
+        await fetchUsers();
+        setIsRenewDialogOpen(false);
+        setRenewingUser(null);
+        toast({ title: t('userManagement.toast.renewSuccess.title'), description: t('userManagement.toast.renewSuccess.description') });
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: t('userManagement.toast.renewError.description') });
+    }
+  };
+
+
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
@@ -224,6 +255,36 @@ export default function UserManagementPage() {
       </form>
     );
   };
+  
+  const renderRenewForm = () => {
+    if (!renewingUser) return null;
+    return (
+        <form onSubmit={handleConfirmRenewal} className="space-y-4">
+            <p>
+                {t('userManagement.renewUser.confirmation')} <strong>{renewingUser.username}</strong>.
+            </p>
+            <div>
+                <Label htmlFor="renewal-period">{t('userManagement.form.subscriptionLabel')}</Label>
+                <Select value={renewalPeriod} onValueChange={setRenewalPeriod}>
+                    <SelectTrigger id="renewal-period">
+                        <SelectValue placeholder={t('userManagement.form.subscriptionPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="1_week">{t('userManagement.periods.week')}</SelectItem>
+                        <SelectItem value="1_month">{t('userManagement.periods.month')}</SelectItem>
+                        <SelectItem value="unlimited">{t('userManagement.periods.unlimited')}</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">{t('cancel')}</Button>
+                </DialogClose>
+                <Button type="submit">{t('userManagement.renewUser.renewButton')}</Button>
+            </DialogFooter>
+        </form>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -319,7 +380,9 @@ export default function UserManagementPage() {
                         </TableCell>
                     </TableRow>
                   ) : users.length > 0 ? (
-                    users.map(user => (
+                    users.map(user => {
+                      const isExpired = user.expiresAt && new Date(user.expiresAt) < new Date();
+                      return (
                       <TableRow key={user.id}>
                         <TableCell className="font-mono">{user.username}</TableCell>
                         <TableCell>{getStatusBadge(user)}</TableCell>
@@ -330,12 +393,18 @@ export default function UserManagementPage() {
                         </TableCell>
                         <TableCell className="text-center">{user.deviceLimit}</TableCell>
                         <TableCell className="text-right space-x-0 flex items-center justify-end">
-                          <Switch 
-                            checked={user.status === 'active'}
-                            onCheckedChange={() => handleToggleStatus(user.id, user.status)}
-                            aria-label={t('userManagement.toggleStatus')}
-                            className="mr-2"
-                          />
+                          {isExpired || user.status === 'inactive' ? (
+                            <Button variant="ghost" size="icon" onClick={() => handleRenewUser(user)} aria-label={t('userManagement.renewUser.renewButton')}>
+                                <History className="h-4 w-4 text-blue-500" />
+                            </Button>
+                          ) : (
+                            <Switch 
+                                checked={user.status === 'active'}
+                                onCheckedChange={() => handleToggleStatus(user.id, user.status)}
+                                aria-label={t('userManagement.toggleStatus')}
+                                className="mr-2"
+                            />
+                          )}
                            <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)} aria-label={t('edit')}>
                             <Pencil className="h-4 w-4 text-primary" />
                           </Button>
@@ -344,7 +413,8 @@ export default function UserManagementPage() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
+                      )
+                    })
                   ) : (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center text-muted-foreground h-24">
@@ -365,6 +435,15 @@ export default function UserManagementPage() {
                     <DialogTitle>{t('userManagement.editUser.title')}</DialogTitle>
                 </DialogHeader>
                 {renderEditForm()}
+            </DialogContent>
+        </Dialog>
+        
+       <Dialog open={isRenewDialogOpen} onOpenChange={setIsRenewDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('userManagement.renewUser.title')}</DialogTitle>
+                </DialogHeader>
+                {renderRenewForm()}
             </DialogContent>
         </Dialog>
     </div>
