@@ -24,7 +24,8 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
         if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
             videoId = urlObj.searchParams.get('v');
         } else if (urlObj.hostname === 'youtu.be') {
-            // Remove leading slash and split by '?' to handle timestamp parameters
+            // Correctly handle paths like /CkD08yt1B3Y by removing the leading slash.
+            // Also handles URLs with timestamps like /CkD08yt1B3Y?t=15 by splitting at '?'
             videoId = urlObj.pathname.substring(1).split('?')[0];
         }
     } catch(e) {
