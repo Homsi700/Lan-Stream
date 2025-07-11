@@ -1,8 +1,10 @@
+
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
 const videosFilePath = path.join(process.cwd(), 'src', 'data', 'videos.json');
+const streamDir = path.join(process.cwd(), 'public', 'streams');
 
 const readVideos = (): any[] => {
   try {
@@ -18,7 +20,20 @@ const writeVideos = (videos: any[]) => {
 };
 
 export async function GET() {
-  const videos = readVideos();
+  let videos = readVideos();
+  // Check processing status
+  videos = videos.map(video => {
+      if (video.processing) {
+          const streamId = video.link.split('/')[2];
+          const masterPlaylistPath = path.join(streamDir, streamId, 'master.m3u8');
+          if (fs.existsSync(masterPlaylistPath)) {
+              // If master playlist exists, processing is done
+              delete video.processing;
+          }
+      }
+      return video;
+  });
+  writeVideos(videos); // Update the json file with the latest status
   return NextResponse.json(videos);
 }
 

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Loader2, Link, Upload } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, Link, Upload, Cog } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -16,6 +16,7 @@ interface VideoContent {
   id: number;
   title: string;
   link: string;
+  processing?: boolean;
 }
 
 export default function SettingsPage() {
@@ -45,6 +46,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchVideos();
+    const interval = setInterval(fetchVideos, 5000); // Poll every 5 seconds for processing status
+    return () => clearInterval(interval);
   }, []);
 
   const handleAddVideoByLink = async (e: React.FormEvent) => {
@@ -104,7 +107,7 @@ export default function SettingsPage() {
         const fileInput = document.getElementById('upload-file') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
 
-        toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
+        toast({ title: t('settings.toast.videoAdded.title'), description: "Video is now processing in the background." });
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Upload Error', description: error.message || 'Failed to upload video.' });
     } finally {
@@ -184,7 +187,7 @@ export default function SettingsPage() {
                     <Input
                       id="upload-file"
                       type="file"
-                      accept="video/mp4,video/webm,video/ogg"
+                      accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-matroska,video/x-msvideo"
                       onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
                        disabled={isUploading}
                     />
@@ -193,7 +196,7 @@ export default function SettingsPage() {
                     {isUploading ? (
                       <>
                         <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
-                        {t('settings.upload.uploading')}
+                        {"Uploading & Processing..."}
                       </>
                     ) : (
                       <>
@@ -234,7 +237,16 @@ export default function SettingsPage() {
                         videos.map(video => (
                           <TableRow key={video.id}>
                             <TableCell className="font-medium">{video.title}</TableCell>
-                            <TableCell className="font-mono text-muted-foreground">{video.link}</TableCell>
+                            <TableCell className="font-mono text-muted-foreground">
+                                {video.processing ? (
+                                    <div className="flex items-center gap-2">
+                                        <Cog className="h-4 w-4 animate-spin" />
+                                        <span>Processing...</span>
+                                    </div>
+                                ) : (
+                                    video.link
+                                )}
+                            </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" onClick={() => handleRemoveVideo(video.id)} aria-label={t('remove')}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
