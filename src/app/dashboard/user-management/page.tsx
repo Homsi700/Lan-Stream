@@ -21,6 +21,7 @@ interface User {
   password?: string;
   status: 'active' | 'inactive';
   expiresAt: string | null;
+  deviceLimit: number;
 }
 
 export default function UserManagementPage() {
@@ -29,6 +30,7 @@ export default function UserManagementPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [subscriptionPeriod, setSubscriptionPeriod] = useState('1_month');
+  const [deviceLimit, setDeviceLimit] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const { t, language } = useTranslation();
@@ -68,7 +70,8 @@ export default function UserManagementPage() {
       username: newUsername,
       password: newPassword,
       status: 'active',
-      expiresAt: expiresAt
+      expiresAt: expiresAt,
+      deviceLimit: deviceLimit,
     };
 
     try {
@@ -88,6 +91,7 @@ export default function UserManagementPage() {
         await fetchUsers();
         setNewUsername('');
         setNewPassword('');
+        setDeviceLimit(1);
         toast({ title: t('toast.userAdded.title'), description: t('toast.userAdded.description') });
 
     } catch(error) {
@@ -139,14 +143,14 @@ export default function UserManagementPage() {
             {t('userManagement.subtitle')}
         </p>
       </header>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>{t('userManagement.form.title')}</CardTitle>
             <CardDescription>{t('userManagement.form.description')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAddUser} className="grid md:grid-cols-4 gap-4 items-end mb-8">
+            <form onSubmit={handleAddUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-8">
               <div className="space-y-2">
                 <Label htmlFor="new-username">{t('userManagement.form.usernameLabel')}</Label>
                 <Input
@@ -190,6 +194,17 @@ export default function UserManagementPage() {
                     </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="device-limit">{t('userManagement.form.deviceLimitLabel')}</Label>
+                <Input
+                  id="device-limit"
+                  type="number"
+                  min="1"
+                  placeholder="1"
+                  value={deviceLimit}
+                  onChange={(e) => setDeviceLimit(parseInt(e.target.value, 10) || 1)}
+                />
+              </div>
               <Button type="submit" className="w-full">
                 <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('add')}
               </Button>
@@ -202,13 +217,14 @@ export default function UserManagementPage() {
                     <TableHead>{t('userManagement.table.username')}</TableHead>
                     <TableHead>{t('userManagement.table.status')}</TableHead>
                     <TableHead>{t('userManagement.table.expiresOn')}</TableHead>
+                    <TableHead>{t('userManagement.table.deviceLimit')}</TableHead>
                     <TableHead className="text-right">{t('userManagement.table.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                      <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">
+                        <TableCell colSpan={5} className="text-center h-24">
                             <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                         </TableCell>
                     </TableRow>
@@ -222,6 +238,7 @@ export default function UserManagementPage() {
                             ? new Date(user.expiresAt).toLocaleDateString(language)
                             : t('userManagement.periods.unlimited')}
                         </TableCell>
+                        <TableCell className="text-center">{user.deviceLimit}</TableCell>
                         <TableCell className="text-right space-x-2 flex items-center justify-end">
                           <Switch 
                             checked={user.status === 'active'}
@@ -236,7 +253,7 @@ export default function UserManagementPage() {
                     ))
                   ) : (
                     <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground h-24">
+                        <TableCell colSpan={5} className="text-center text-muted-foreground h-24">
                             {t('userManagement.table.noUsers')}
                         </TableCell>
                     </TableRow>

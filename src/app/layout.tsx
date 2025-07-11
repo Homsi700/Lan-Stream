@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AppProvider } from '@/context/app-context';
 
 export const metadata: Metadata = {
-  title: 'LAN Stream',
+  title: 'AVA TV',
   description: 'Internal Video Streaming Network',
 };
 

@@ -1,7 +1,7 @@
 
 export const translations = {
   en: {
-    appName: 'LAN Stream',
+    appName: 'AVA TV',
     verifyingAccess: 'Verifying access...',
     add: 'Add',
     remove: 'Remove',
@@ -34,11 +34,13 @@ export const translations = {
           passwordPlaceholder: 'Enter a password',
           subscriptionLabel: 'Subscription Period',
           subscriptionPlaceholder: 'Select a period',
+          deviceLimitLabel: 'Device Limit',
       },
       table: {
           username: 'Username',
           status: 'Status',
           expiresOn: 'Expires On',
+          deviceLimit: 'Devices',
           actions: 'Actions',
           noUsers: 'No users have been added yet.',
       },
@@ -105,11 +107,11 @@ export const translations = {
       toggleLanguage: 'Toggle language',
       adminUser: {
         name: 'Admin User',
-        email: 'admin@lanstream.local',
+        email: 'admin@avatv.local',
       },
       clientUser: {
         name: 'Client User',
-        email: 'client@lanstream.local',
+        email: 'client@avatv.local',
       }
     },
     videoCard: {
@@ -157,7 +159,7 @@ export const translations = {
     }
   },
   ar: {
-    appName: 'لان ستريم',
+    appName: 'AVA TV',
     verifyingAccess: 'يتم التحقق من الوصول...',
     add: 'إضافة',
     remove: 'إزالة',
@@ -190,11 +192,13 @@ export const translations = {
           passwordPlaceholder: 'أدخل كلمة المرور',
           subscriptionLabel: 'فترة الاشتراك',
           subscriptionPlaceholder: 'اختر فترة',
+          deviceLimitLabel: 'عدد الأجهزة',
       },
       table: {
           username: 'اسم المستخدم',
           status: 'الحالة',
           expiresOn: 'تاريخ الانتهاء',
+          deviceLimit: 'الأجهزة',
           actions: 'الإجراءات',
           noUsers: 'لم يتم إضافة أي مستخدمين بعد.',
       },
@@ -261,11 +265,11 @@ export const translations = {
       toggleLanguage: 'تبديل اللغة',
       adminUser: {
         name: 'المسؤول',
-        email: 'admin@lanstream.local',
+        email: 'admin@avatv.local',
       },
       clientUser: {
           name: 'زبون',
-          email: 'client@lanstream.local',
+          email: 'client@avatv.local',
       }
     },
     videoCard: {

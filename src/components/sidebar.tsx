@@ -49,7 +49,7 @@ export function AppSidebar() {
          const expiresAt = localStorage.getItem('user_expires_at');
          setUserProfile({
             name: username || t('sidebar.clientUser.name'),
-            email: `${username || 'client'}@lanstream.local`,
+            email: `${username || 'client'}@avatv.local`,
             expiresAt: expiresAt,
             avatar: 'https://placehold.co/100x100.png',
             avatarFallback: username ? username.charAt(0).toUpperCase() : 'C'
