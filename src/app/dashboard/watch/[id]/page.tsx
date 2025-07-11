@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { VideoPlayer } from '@/components/video-player';
 import { ImageStreamPlayer } from '@/components/image-stream-player';
+import { WebRTCPlayer } from '@/components/webrtc-player';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Film } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +21,6 @@ interface Video {
 }
 
 const getYouTubeEmbedUrl = (url: string): string | null => {
-    // Return null if the link is not for YouTube.
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
         return null;
     }
@@ -31,9 +31,7 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
         if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
             videoId = urlObj.searchParams.get('v');
         } else if (urlObj.hostname === 'youtu.be') {
-            // For youtu.be links, the ID is the first part of the path.
-            // Split by '?' to remove any parameters like ?t=
-            videoId = urlObj.pathname.substring(1).split('?')[0];
+            videoId = urlObj.pathname.split('?')[0].substring(1);
         }
     } catch(e) {
         console.error("Invalid URL for YouTube parsing:", e);
@@ -73,31 +71,30 @@ export default function WatchPage() {
   const renderPlayer = () => {
     if (!video) return null;
     
-    // Handle YouTube videos first by checking the link format
-    const youtubeEmbedUrl = video.link ? getYouTubeEmbedUrl(video.link) : null;
-    if (youtubeEmbedUrl) {
-      return (
-        <iframe
-            className="w-full max-w-6xl aspect-video rounded-lg shadow-2xl shadow-primary/20"
-            src={youtubeEmbedUrl}
-            title={video.title}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-        ></iframe>
-      );
+    if (video.type === 'link' && video.link) {
+        const youtubeEmbedUrl = getYouTubeEmbedUrl(video.link);
+        if (youtubeEmbedUrl) {
+            return (
+                <iframe
+                    className="w-full max-w-6xl aspect-video rounded-lg shadow-2xl shadow-primary/20"
+                    src={youtubeEmbedUrl}
+                    title={video.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                ></iframe>
+            );
+        }
     }
     
-    // Handle other types based on the 'type' field
     switch (video.type) {
         case 'ipcam':
             return <ImageStreamPlayer streamSrc={video.link!} />;
         case 'upload':
-        case 'link':
+        case 'link': // Catches non-YouTube links
             return <VideoPlayer videoSrc={video.link!} />;
         case 'webrtc':
-            // Placeholder for future WebRTC player component
-            return <div className="text-white">WebRTC Player for {video.title} will be implemented here.</div>;
+            return <WebRTCPlayer signalingUrl={video.signalingUrl!} username={video.username} password={video.password} />;
         default:
             return <div className="text-white">Unsupported video type.</div>;
     }
