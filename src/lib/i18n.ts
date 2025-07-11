@@ -67,14 +67,21 @@ export const translations = {
     settings: {
         title: 'Content Management',
         subtitle: 'Manage the video content available in the catalog.',
+        addByLink: 'Add by Link',
+        addByUpload: 'Add by Upload',
         newVideo: {
             title: 'Add New Video',
-            description: 'Add a new video card to the catalog by providing a title and a direct stream link.',
+            description: 'Add a new video by providing a direct stream link or by uploading a file.',
             videoTitleLabel: 'Video Title',
             videoTitlePlaceholder: 'e.g., Company All-Hands Q1',
             videoLinkLabel: 'Video Stream Link',
             videoLinkPlaceholder: 'e.g., http://server/stream.mp4',
             addVideo: 'Add Video'
+        },
+        upload: {
+            fileLabel: 'Video File',
+            uploadAndAdd: 'Upload and Add Video',
+            uploading: 'Uploading...',
         },
         videoList: {
             title: 'Video Catalog',
@@ -180,7 +187,7 @@ export const translations = {
           usernameLabel: 'اسم المستخدم',
           usernamePlaceholder: 'أدخل اسم مستخدم جديد',
           passwordLabel: 'كلمة المرور',
-          passwordPlaceholder: 'أدخل كلمة المرور',
+          placeholder: 'أدخل كلمة المرور',
           subscriptionLabel: 'فترة الاشتراك',
           subscriptionPlaceholder: 'اختر فترة',
       },
@@ -216,14 +223,21 @@ export const translations = {
      settings: {
         title: 'إدارة المحتوى',
         subtitle: 'إدارة محتوى الفيديو المتاح في الكتالوج.',
+        addByLink: 'إضافة عبر الرابط',
+        addByUpload: 'إضافة عبر الرفع',
         newVideo: {
             title: 'إضافة فيديو جديد',
-            description: 'أضف بطاقة فيديو جديدة إلى الكتالوج من خلال توفير عنوان ورابط بث مباشر.',
+            description: 'أضف فيديو جديدًا عن طريق توفير رابط بث مباشر أو عن طريق رفع ملف.',
             videoTitleLabel: 'عنوان الفيديو',
             videoTitlePlaceholder: 'مثال: اجتماع الشركة للربع الأول',
             videoLinkLabel: 'رابط بث الفيديو',
             videoLinkPlaceholder: 'مثال: http://server/stream.mp4',
             addVideo: 'إضافة فيديو'
+        },
+        upload: {
+            fileLabel: 'ملف الفيديو',
+            uploadAndAdd: 'رفع وإضافة الفيديو',
+            uploading: 'جارٍ الرفع...',
         },
         videoList: {
             title: 'كتالوج الفيديو',
