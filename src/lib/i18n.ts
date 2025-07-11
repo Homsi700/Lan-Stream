@@ -187,7 +187,7 @@ export const translations = {
           usernameLabel: 'اسم المستخدم',
           usernamePlaceholder: 'أدخل اسم مستخدم جديد',
           passwordLabel: 'كلمة المرور',
-          placeholder: 'أدخل كلمة المرور',
+          passwordPlaceholder: 'أدخل كلمة المرور',
           subscriptionLabel: 'فترة الاشتراك',
           subscriptionPlaceholder: 'اختر فترة',
       },

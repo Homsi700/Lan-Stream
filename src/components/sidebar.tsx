@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users, Settings } from 'lucide-react';
+import { Clapperboard, Home, LogOut, Moon, Sun, Languages, Users, Settings, CalendarClock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from './ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
@@ -20,20 +20,48 @@ import { useAppContext } from '@/context/app-context';
 import { Button } from './ui/button';
 import { useEffect, useState } from 'react';
 
+interface UserProfile {
+    name: string;
+    email: string;
+    expiresAt?: string | null;
+    avatar: string;
+    avatarFallback: string;
+}
+
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t, language, setLanguage } = useTranslation();
   const { theme, setTheme } = useAppContext();
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-     setUserRole(localStorage.getItem('user_role'));
-  }, []);
+     const role = localStorage.getItem('user_role');
+     if (role === 'admin') {
+         setUserProfile({
+            name: t('sidebar.adminUser.name'),
+            email: t('sidebar.adminUser.email'),
+            avatar: 'https://placehold.co/100x100.png',
+            avatarFallback: 'A'
+         });
+     } else if (role === 'user') {
+         const username = localStorage.getItem('user_username');
+         const expiresAt = localStorage.getItem('user_expires_at');
+         setUserProfile({
+            name: username || t('sidebar.clientUser.name'),
+            email: `${username || 'client'}@lanstream.local`,
+            expiresAt: expiresAt,
+            avatar: 'https://placehold.co/100x100.png',
+            avatarFallback: username ? username.charAt(0).toUpperCase() : 'C'
+         });
+     }
+  }, [t]);
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_role');
+    localStorage.removeItem('user_username');
+    localStorage.removeItem('user_expires_at');
     router.push('/');
   };
 
@@ -48,19 +76,11 @@ export function AppSidebar() {
     document.documentElement.lang = newLang;
   };
 
-  const user = userRole === 'admin' ? {
-      name: t('sidebar.adminUser.name'),
-      email: t('sidebar.adminUser.email'),
-      avatar: 'https://placehold.co/100x100.png',
-      avatarFallback: 'A'
-  } : {
-      name: t('sidebar.clientUser.name'),
-      email: t('sidebar.clientUser.email'),
-      avatar: 'https://placehold.co/100x100.png',
-      avatarFallback: 'C'
-  };
+  if (!userProfile) {
+    return null; // or a loading skeleton
+  }
   
-  const dashboardHref = userRole === 'admin' ? '/dashboard' : '/dashboard/client';
+  const dashboardHref = localStorage.getItem('user_role') === 'admin' ? '/dashboard' : '/dashboard/client';
 
   return (
     <Sidebar>
@@ -77,7 +97,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <Link href={dashboardHref} passHref>
               <SidebarMenuButton 
-                isActive={pathname === dashboardHref || (userRole === 'user' && pathname === '/dashboard')}
+                isActive={pathname === dashboardHref || (localStorage.getItem('user_role') === 'user' && pathname === '/dashboard')}
                 tooltip={t('sidebar.dashboard')}
                 asChild
               >
@@ -88,7 +108,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          {userRole === 'admin' && (
+          {localStorage.getItem('user_role') === 'admin' && (
             <>
               <SidebarMenuItem>
                 <Link href="/dashboard/user-management" passHref>
@@ -137,14 +157,24 @@ export function AppSidebar() {
         <Separator className="my-2 bg-sidebar-border" />
          <div className="flex items-center gap-3 p-2">
             <Avatar className="h-9 w-9">
-                <AvatarImage src={user.avatar} alt="@user" data-ai-hint="user avatar" />
-                <AvatarFallback>{user.avatarFallback}</AvatarFallback>
+                <AvatarImage src={userProfile.avatar} alt="@user" data-ai-hint="user avatar" />
+                <AvatarFallback>{userProfile.avatarFallback}</AvatarFallback>
             </Avatar>
             <div className="overflow-hidden">
-                <p className="font-semibold truncate">{user.name}</p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
+                <p className="font-semibold truncate">{userProfile.name}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{userProfile.email}</p>
             </div>
         </div>
+
+        {userProfile.expiresAt && (
+            <div className="px-3 pb-2 text-xs text-sidebar-foreground/70 flex items-center gap-2">
+                <CalendarClock className="h-3 w-3" />
+                <span>
+                    {t('userManagement.table.expiresOn')}: {new Date(userProfile.expiresAt).toLocaleDateString(language)}
+                </span>
+            </div>
+        )}
+
         <SidebarMenuButton onClick={handleLogout} variant="default" className="bg-sidebar-accent/50 hover:bg-sidebar-accent">
           <LogOut />
           <span>{t('sidebar.logout')}</span>

@@ -62,6 +62,10 @@ export function LoginForm() {
                 
                 localStorage.setItem("auth_token", `dummy_token_for_${username}`);
                 localStorage.setItem("user_role", 'user');
+                localStorage.setItem("user_username", foundUser.username);
+                if (foundUser.expiresAt) {
+                    localStorage.setItem("user_expires_at", foundUser.expiresAt);
+                }
                 router.push("/dashboard/client");
             }
         } else {
