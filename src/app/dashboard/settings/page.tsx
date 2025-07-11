@@ -13,6 +13,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import axios from 'axios';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
 
 interface VideoContent {
   id: number;
@@ -24,6 +25,7 @@ interface VideoContent {
   password?: string;
   processing?: boolean;
   thumbnail?: string;
+  summary?: string;
 }
 
 export default function SettingsPage() {
@@ -81,7 +83,7 @@ export default function SettingsPage() {
       const response = await fetch('/api/videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Date.now(), thumbnail: 'https://placehold.co/600x400.png', ...videoData }),
+        body: JSON.stringify({ id: Date.now(), thumbnail: `https://placehold.co/600x400.png`, ...videoData }),
       });
        if (!response.ok) {
          throw new Error('Failed to add video');
@@ -253,7 +255,7 @@ export default function SettingsPage() {
                 <Input
                     id="edit-video-thumbnail"
                     placeholder="https://example.com/image.png"
-                    value={editingVideo.thumbnail || ''}
+                    value={editingVideo.thumbnail?.includes('placehold.co') ? '' : editingVideo.thumbnail}
                     onChange={(e) => setEditingVideo({...editingVideo, thumbnail: e.target.value})}
                 />
             </div>
@@ -295,6 +297,15 @@ export default function SettingsPage() {
                   </div>
                 </>
             )}
+            <div>
+              <Label htmlFor="edit-video-summary">{t('videoCard.summary')}</Label>
+              <Textarea
+                id="edit-video-summary"
+                placeholder={t('videoCard.summaryPlaceholder')}
+                value={editingVideo.summary || ''}
+                onChange={(e) => setEditingVideo({...editingVideo, summary: e.target.value})}
+              />
+            </div>
             <DialogFooter>
                 <DialogClose asChild>
                     <Button type="button" variant="secondary">{t('cancel')}</Button>

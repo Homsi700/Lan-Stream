@@ -25,6 +25,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   const videoIndex = videos.findIndex(video => video.id === id);
 
   if (videoIndex > -1) {
+    // If thumbnail is empty or just whitespace, revert to placeholder
+    if (!updatedVideoData.thumbnail || updatedVideoData.thumbnail.trim() === '') {
+        updatedVideoData.thumbnail = `https://placehold.co/600x400.png`;
+    }
     videos[videoIndex] = { ...videos[videoIndex], ...updatedVideoData, id: id }; // Ensure ID is not changed
     writeVideos(videos);
     return NextResponse.json(videos[videoIndex], { status: 200 });
