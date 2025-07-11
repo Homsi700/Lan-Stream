@@ -14,6 +14,19 @@ interface Video {
   link: string;
 }
 
+const getYouTubeEmbedUrl = (url: string): string | null => {
+    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+        return null;
+    }
+    let videoId = null;
+    if (url.includes('watch?v=')) {
+        videoId = new URL(url).searchParams.get('v');
+    } else if (url.includes('youtu.be/')) {
+        videoId = new URL(url).pathname.split('/')[1];
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
+}
+
 export default function WatchPage() {
   const params = useParams();
   const { t } = useTranslation();
@@ -40,6 +53,8 @@ export default function WatchPage() {
         fetchVideos();
     }
   }, [params.id]);
+
+  const youtubeEmbedUrl = video ? getYouTubeEmbedUrl(video.link) : null;
   
   if (!video) {
       return (
@@ -68,8 +83,20 @@ export default function WatchPage() {
         <div className="w-24"></div>
       </header>
       <main className="flex-1 flex items-center justify-center overflow-hidden">
-        <VideoPlayer videoSrc={video.link} />
+        {youtubeEmbedUrl ? (
+             <iframe
+                className="w-full max-w-6xl aspect-video rounded-lg shadow-2xl shadow-primary/20"
+                src={youtubeEmbedUrl}
+                title={video.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+            ></iframe>
+        ) : (
+            <VideoPlayer videoSrc={video.link} />
+        )}
       </main>
     </div>
   );
 }
+
