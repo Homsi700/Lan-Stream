@@ -32,23 +32,28 @@ export default function SettingsPage() {
   const { t } = useTranslation();
 
   const fetchVideos = async () => {
-    setIsLoading(true);
+    // No need to set isLoading to true here to avoid flickering
     try {
         const response = await fetch('/api/videos');
         const data = await response.json();
         setVideos(data);
     } catch(error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch videos.' });
+        // Only show error toast if initial loading fails
+        if (isLoading) {
+          toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch videos.' });
+        }
     } finally {
-        setIsLoading(false);
+        if (isLoading) {
+          setIsLoading(false);
+        }
     }
   }
 
   useEffect(() => {
-    fetchVideos();
+    fetchVideos(); // Initial fetch
     const interval = setInterval(fetchVideos, 5000); // Poll every 5 seconds for processing status
     return () => clearInterval(interval);
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleAddVideoByLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +152,7 @@ export default function SettingsPage() {
               </TabsList>
               <TabsContent value="link" className="mt-6">
                 <form onSubmit={handleAddVideoByLink} className="grid md:grid-cols-3 gap-4 items-end">
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2 md:col-span-3">
                     <Label htmlFor="new-video-title">{t('settings.newVideo.videoTitleLabel')}</Label>
                     <Input
                       id="new-video-title"
@@ -192,11 +197,11 @@ export default function SettingsPage() {
                        disabled={isUploading}
                     />
                   </div>
-                  <Button type="submit" className="w-full md:col-span-3" disabled={isUploading}>
+                  <Button type="submit" className="w-full md:col-span-3" disabled={isUploading || !uploadFile || !uploadTitle}>
                     {isUploading ? (
                       <>
                         <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
-                        {"Uploading & Processing..."}
+                        {t('settings.upload.uploading')}
                       </>
                     ) : (
                       <>
@@ -237,9 +242,9 @@ export default function SettingsPage() {
                         videos.map(video => (
                           <TableRow key={video.id}>
                             <TableCell className="font-medium">{video.title}</TableCell>
-                            <TableCell className="font-mono text-muted-foreground">
+                            <TableCell className="font-mono text-muted-foreground truncate max-w-xs">
                                 {video.processing ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 text-amber-500">
                                         <Cog className="h-4 w-4 animate-spin" />
                                         <span>Processing...</span>
                                     </div>

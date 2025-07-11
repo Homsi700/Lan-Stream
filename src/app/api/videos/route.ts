@@ -21,6 +21,7 @@ const writeVideos = (videos: any[]) => {
 
 export async function GET() {
   let videos = readVideos();
+  let wasUpdated = false;
   // Check processing status
   videos = videos.map(video => {
       if (video.processing) {
@@ -29,11 +30,16 @@ export async function GET() {
           if (fs.existsSync(masterPlaylistPath)) {
               // If master playlist exists, processing is done
               delete video.processing;
+              wasUpdated = true;
           }
       }
       return video;
   });
-  writeVideos(videos); // Update the json file with the latest status
+  
+  if (wasUpdated) {
+    writeVideos(videos); // Update the json file only if a change occurred
+  }
+
   return NextResponse.json(videos);
 }
 
