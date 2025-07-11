@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
         })
         .catch(err => {
             console.error(`FFmpeg error for ${title}:`, err);
+            if (err.message.includes('not recognized') || err.message.includes('not found')) {
+                console.error('Hint: FFmpeg might not be installed or is not in your system\'s PATH. Please check the README.md for installation instructions.');
+            }
         })
         .finally(() => {
             // Clean up temporary file

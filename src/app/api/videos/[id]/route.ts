@@ -20,7 +20,8 @@ const writeVideos = (videos: any[]) => {
 };
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10);
+  const { id: paramId } = params;
+  const id = parseInt(paramId, 10);
   let videos = readVideos();
   const videoToDelete = videos.find(video => video.id === id);
   const initialLength = videos.length;
