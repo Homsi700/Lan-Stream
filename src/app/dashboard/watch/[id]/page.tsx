@@ -12,19 +12,27 @@ import { useTranslation } from '@/hooks/use-translation';
 interface Video {
   id: number;
   title: string;
-  link: string;
+  type: 'link' | 'upload' | 'ipcam' | 'webrtc';
+  link?: string;
+  signalingUrl?: string;
+  username?: string;
+  password?: string;
 }
 
 const getYouTubeEmbedUrl = (url: string): string | null => {
+    // Return null if the link is not for YouTube.
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
         return null;
     }
-    let videoId = null;
+
+    let videoId: string | null = null;
     try {
         const urlObj = new URL(url);
         if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
             videoId = urlObj.searchParams.get('v');
         } else if (urlObj.hostname === 'youtu.be') {
+            // For youtu.be links, the ID is the first part of the path.
+            // Split by '?' to remove any parameters like ?t=
             videoId = urlObj.pathname.substring(1).split('?')[0];
         }
     } catch(e) {
@@ -35,21 +43,11 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
     return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
 }
 
-const isIpCamStream = (url: string): boolean => {
-    // A more robust regex to check for http(s)://<ip-address>:<port>/...
-    // This is the correct way to detect an IP camera stream URL without
-    // failing on the new URL() constructor for local IPs.
-    const ipCamRegex = /^(https?:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\b.*/;
-    return ipCamRegex.test(url);
-}
-
-
 export default function WatchPage() {
   const params = useParams();
   const { t } = useTranslation();
   const [video, setVideo] = useState<Video | null>(null);
   const [backLink, setBackLink] = useState('/dashboard');
-  const [streamType, setStreamType] = useState<'youtube' | 'video' | 'ipcam' | null>(null);
 
   useEffect(() => {
     const role = localStorage.getItem('user_role');
@@ -63,17 +61,6 @@ export default function WatchPage() {
                 const storedVideos: Video[] = await response.json();
                 const foundVideo = storedVideos.find(v => v.id.toString() === videoId);
                 setVideo(foundVideo || null);
-
-                if (foundVideo) {
-                    if (getYouTubeEmbedUrl(foundVideo.link)) {
-                        setStreamType('youtube');
-                    } else if (isIpCamStream(foundVideo.link)) {
-                        setStreamType('ipcam');
-                    } else {
-                        setStreamType('video');
-                    }
-                }
-
             } catch (error) {
                 console.error("Failed to fetch video details", error);
                 setVideo(null);
@@ -85,26 +72,34 @@ export default function WatchPage() {
   
   const renderPlayer = () => {
     if (!video) return null;
-
-    switch (streamType) {
-        case 'youtube':
-            const youtubeEmbedUrl = getYouTubeEmbedUrl(video.link);
-            return (
-                 <iframe
-                    className="w-full max-w-6xl aspect-video rounded-lg shadow-2xl shadow-primary/20"
-                    src={youtubeEmbedUrl!}
-                    title={video.title}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                ></iframe>
-            );
+    
+    // Handle YouTube videos first by checking the link format
+    const youtubeEmbedUrl = video.link ? getYouTubeEmbedUrl(video.link) : null;
+    if (youtubeEmbedUrl) {
+      return (
+        <iframe
+            className="w-full max-w-6xl aspect-video rounded-lg shadow-2xl shadow-primary/20"
+            src={youtubeEmbedUrl}
+            title={video.title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+        ></iframe>
+      );
+    }
+    
+    // Handle other types based on the 'type' field
+    switch (video.type) {
         case 'ipcam':
-            return <ImageStreamPlayer streamSrc={video.link} />;
-        case 'video':
-            return <VideoPlayer videoSrc={video.link} />;
+            return <ImageStreamPlayer streamSrc={video.link!} />;
+        case 'upload':
+        case 'link':
+            return <VideoPlayer videoSrc={video.link!} />;
+        case 'webrtc':
+            // Placeholder for future WebRTC player component
+            return <div className="text-white">WebRTC Player for {video.title} will be implemented here.</div>;
         default:
-            return null; // or a loading indicator
+            return <div className="text-white">Unsupported video type.</div>;
     }
   }
 
@@ -134,7 +129,7 @@ export default function WatchPage() {
         <h1 className="text-xl font-bold truncate font-headline">{video.title}</h1>
         <div className="w-24"></div>
       </header>
-      <main className="flex-1 flex items-center justify-center overflow-hidden">
+      <main className="flex-1 flex items-center justify-center overflow-hidden p-4">
         {renderPlayer()}
       </main>
     </div>

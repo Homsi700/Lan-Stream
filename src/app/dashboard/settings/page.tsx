@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Loader2, Link, Upload, Cog } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, Link, Upload, Cog, Signal } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import axios from 'axios';
@@ -17,31 +17,45 @@ import { Progress } from '@/components/ui/progress';
 interface VideoContent {
   id: number;
   title: string;
-  link: string;
+  link?: string;
+  type: 'link' | 'upload' | 'ipcam' | 'webrtc';
+  signalingUrl?: string;
+  username?: string;
+  password?: string;
   processing?: boolean;
 }
 
 export default function SettingsPage() {
   const [videos, setVideos] = useState<VideoContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Link states
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoLink, setNewVideoLink] = useState('');
+  
+  // Upload states
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // WebRTC states
+  const [webrtcTitle, setWebrtcTitle] = useState('');
+  const [webrtcUrl, setWebrtcUrl] = useState('');
+  const [webrtcUsername, setWebrtcUsername] = useState('');
+  const [webrtcPassword, setWebrtcPassword] = useState('');
+  const [showWebRTCPassword, setShowWebRTCPassword] = useState(false);
+
+
   const { toast } = useToast();
   const { t } = useTranslation();
 
   const fetchVideos = async () => {
-    // No need to set isLoading to true here to avoid flickering
     try {
         const response = await fetch('/api/videos');
         const data = await response.json();
         setVideos(data);
     } catch(error) {
-        // Only show error toast if initial loading fails
         if (isLoading) {
           toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch videos.' });
         }
@@ -53,10 +67,29 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
-    fetchVideos(); // Initial fetch
-    const interval = setInterval(fetchVideos, 5000); // Poll every 5 seconds for processing status
+    fetchVideos();
+    const interval = setInterval(fetchVideos, 5000);
     return () => clearInterval(interval);
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
+
+  const handleAddVideo = async (videoData: Partial<VideoContent>) => {
+    try {
+      const response = await fetch('/api/videos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Date.now(), ...videoData }),
+      });
+       if (!response.ok) {
+         throw new Error('Failed to add video');
+       }
+      await fetchVideos();
+      toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
+      return true;
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to add video.' });
+      return false;
+    }
+  };
 
   const handleAddVideoByLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,27 +97,43 @@ export default function SettingsPage() {
       toast({ variant: 'destructive', title: t('toast.formError.title'), description: t('toast.formError.description') });
       return;
     }
+    const isIpCam = /^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\b.*/.test(newVideoLink);
 
-    const newVideo: Omit<VideoContent, 'id'> & { id?: number } = {
-      id: Date.now(),
+    const success = await handleAddVideo({
       title: newVideoTitle,
       link: newVideoLink,
-    };
-    
-    try {
-      await fetch('/api/videos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newVideo),
-      });
-      await fetchVideos();
+      type: isIpCam ? 'ipcam' : 'link',
+    });
+
+    if (success) {
       setNewVideoTitle('');
       setNewVideoLink('');
-      toast({ title: t('settings.toast.videoAdded.title'), description: t('settings.toast.videoAdded.description') });
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to add video.' });
     }
   };
+
+  const handleAddVideoByWebRTC = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!webrtcTitle || !webrtcUrl) {
+      toast({ variant: 'destructive', title: t('toast.formError.title'), description: 'Please provide a title and signaling URL.' });
+      return;
+    }
+    
+    const success = await handleAddVideo({
+      title: webrtcTitle,
+      signalingUrl: webrtcUrl,
+      username: webrtcUsername,
+      password: webrtcPassword,
+      type: 'webrtc',
+    });
+    
+    if (success) {
+      setWebrtcTitle('');
+      setWebrtcUrl('');
+      setWebrtcUsername('');
+      setWebrtcPassword('');
+    }
+  };
+
 
   const handleAddVideoByUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +167,6 @@ export default function SettingsPage() {
         await fetchVideos();
         setUploadTitle('');
         setUploadFile(null);
-        // Reset file input
         const fileInput = document.getElementById('upload-file') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
 
@@ -144,6 +192,27 @@ export default function SettingsPage() {
     }
   };
 
+  const getVideoSourceInfo = (video: VideoContent) => {
+    if (video.processing) {
+      return (
+        <div className="flex items-center gap-2 text-amber-500">
+            <Cog className="h-4 w-4 animate-spin" />
+            <span>Processing...</span>
+        </div>
+      );
+    }
+    switch (video.type) {
+        case 'upload':
+        case 'link':
+        case 'ipcam':
+            return video.link;
+        case 'webrtc':
+            return video.signalingUrl;
+        default:
+            return 'N/A';
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       <header className="mb-8">
@@ -160,13 +229,15 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="link" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="link"><Link className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.addByLink')}</TabsTrigger>
                 <TabsTrigger value="upload"><Upload className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.addByUpload')}</TabsTrigger>
+                <TabsTrigger value="webrtc"><Signal className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> WebRTC</TabsTrigger>
               </TabsList>
+
               <TabsContent value="link" className="mt-6">
-                <form onSubmit={handleAddVideoByLink} className="grid md:grid-cols-3 gap-4 items-end">
-                  <div className="space-y-2 md:col-span-3">
+                <form onSubmit={handleAddVideoByLink} className="space-y-4">
+                  <div>
                     <Label htmlFor="new-video-title">{t('settings.newVideo.videoTitleLabel')}</Label>
                     <Input
                       id="new-video-title"
@@ -175,7 +246,7 @@ export default function SettingsPage() {
                       onChange={(e) => setNewVideoTitle(e.target.value)}
                     />
                   </div>
-                   <div className="space-y-2  md:col-span-3">
+                   <div>
                     <Label htmlFor="new-video-link">{t('settings.newVideo.videoLinkLabel')}</Label>
                     <Input
                       id="new-video-link"
@@ -184,14 +255,15 @@ export default function SettingsPage() {
                       onChange={(e) => setNewVideoLink(e.target.value)}
                     />
                   </div>
-                  <Button type="submit" className="w-full md:col-start-3">
+                  <Button type="submit" className="w-full">
                     <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> {t('settings.newVideo.addVideo')}
                   </Button>
                 </form>
               </TabsContent>
+
               <TabsContent value="upload" className="mt-6">
-                <form onSubmit={handleAddVideoByUpload} className="grid md:grid-cols-3 gap-4 items-end">
-                   <div className="space-y-2">
+                <form onSubmit={handleAddVideoByUpload} className="space-y-4">
+                   <div>
                     <Label htmlFor="upload-title">{t('settings.newVideo.videoTitleLabel')}</Label>
                     <Input
                       id="upload-title"
@@ -201,7 +273,7 @@ export default function SettingsPage() {
                        disabled={isUploading}
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
+                  <div>
                     <Label htmlFor="upload-file">{t('settings.upload.fileLabel')}</Label>
                     <Input
                       id="upload-file"
@@ -212,7 +284,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   {isUploading && (
-                    <div className="md:col-span-3 w-full space-y-2">
+                    <div className="w-full space-y-2">
                       <div className="flex justify-between">
                          <p className="text-sm text-muted-foreground">{uploadProgress < 100 ? t('settings.upload.uploading') : 'Processing...'}</p>
                          <p className="text-sm font-medium">{uploadProgress}%</p>
@@ -220,21 +292,40 @@ export default function SettingsPage() {
                       <Progress value={uploadProgress} className="w-full" />
                     </div>
                   )}
-                  <Button type="submit" className="w-full md:col-span-3" disabled={isUploading || !uploadFile || !uploadTitle}>
+                  <Button type="submit" className="w-full" disabled={isUploading || !uploadFile || !uploadTitle}>
                     {isUploading ? (
-                      <>
-                        <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
-                        {uploadProgress < 100 ? t('settings.upload.uploading') : 'Processing...'}
-                      </>
+                      <><Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />{uploadProgress < 100 ? t('settings.upload.uploading') : 'Processing...'}</>
                     ) : (
-                      <>
-                        <Upload className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                        {t('settings.upload.uploadAndAdd')}
-                      </>
+                      <><Upload className="ltr:mr-2 rtl:ml-2 h-4 w-4" />{t('settings.upload.uploadAndAdd')}</>
                     )}
                   </Button>
                 </form>
               </TabsContent>
+              
+              <TabsContent value="webrtc" className="mt-6">
+                <form onSubmit={handleAddVideoByWebRTC} className="space-y-4">
+                  <div>
+                    <Label htmlFor="webrtc-title">{t('settings.newVideo.videoTitleLabel')}</Label>
+                    <Input id="webrtc-title" placeholder="e.g., Office Cam" value={webrtcTitle} onChange={(e) => setWebrtcTitle(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="webrtc-url">Signaling Server URL</Label>
+                    <Input id="webrtc-url" placeholder="wss://your-server.com/signal" value={webrtcUrl} onChange={(e) => setWebrtcUrl(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="webrtc-username">Username (Optional)</Label>
+                    <Input id="webrtc-username" placeholder="Enter username" value={webrtcUsername} onChange={(e) => setWebrtcUsername(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="webrtc-password">Password (Optional)</Label>
+                    <Input id="webrtc-password" type={showWebRTCPassword ? 'text' : 'password'} placeholder="Enter password" value={webrtcPassword} onChange={(e) => setWebrtcPassword(e.target.value)} />
+                  </div>
+                   <Button type="submit" className="w-full">
+                    <PlusCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" /> Add WebRTC Stream
+                  </Button>
+                </form>
+              </TabsContent>
+
             </Tabs>
           </CardContent>
         </Card>
@@ -250,7 +341,7 @@ export default function SettingsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t('settings.newVideo.videoTitleLabel')}</TableHead>
-                        <TableHead>{t('settings.newVideo.videoLinkLabel')}</TableHead>
+                        <TableHead>Source</TableHead>
                         <TableHead className="text-right">{t('userManagement.table.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -266,14 +357,7 @@ export default function SettingsPage() {
                           <TableRow key={video.id}>
                             <TableCell className="font-medium">{video.title}</TableCell>
                             <TableCell className="font-mono text-muted-foreground truncate max-w-xs">
-                                {video.processing ? (
-                                    <div className="flex items-center gap-2 text-amber-500">
-                                        <Cog className="h-4 w-4 animate-spin" />
-                                        <span>Processing...</span>
-                                    </div>
-                                ) : (
-                                    video.link
-                                )}
+                              {getVideoSourceInfo(video)}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="icon" onClick={() => handleRemoveVideo(video.id)} aria-label={t('remove')}>

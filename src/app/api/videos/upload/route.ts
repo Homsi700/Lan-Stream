@@ -1,4 +1,5 @@
 
+
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
@@ -60,7 +61,6 @@ export async function POST(req: NextRequest) {
         { name: '720p', w: 1280, h: 720, bv: '2800k', maxrate: '2996k', bufsize: '4200k', ba: '128k' },
     ];
     
-    // Correctly build the filter_complex and mapping for multiple outputs
     const filterComplex = resolutions
       .map((res, i) => `[0:v]scale=w=${res.w}:h=${res.h}:force_original_aspect_ratio=decrease,pad=w=${res.w}:h=${res.h}:x=(ow-iw)/2:y=(oh-ih)/2[v${i}]`)
       .join(';');
@@ -76,15 +76,12 @@ export async function POST(req: NextRequest) {
     
     console.log('Executing FFmpeg command:', finalFfmpegCommand);
     
-    // Execute FFmpeg (This can take a long time)
-    // We don't await this, it runs in the background. We just add the video to the list.
     execPromise(finalFfmpegCommand)
         .then(({ stdout, stderr }) => {
             console.log(`Transcoding finished for ${title}`);
              if (stderr) {
                 console.log(`FFmpeg stderr: ${stderr}`);
             }
-            // Create master playlist
             const masterPlaylistContent = '#EXTM3U\n' +
                 resolutions.map(res => `#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(res.bv, 10) * 1000},RESOLUTION=${res.w}x${res.h}\n${res.name}.m3u8`).join('\n');
             fs.writeFileSync(path.join(outputDir, 'master.m3u8'), masterPlaylistContent);
@@ -102,19 +99,19 @@ export async function POST(req: NextRequest) {
             console.error('--- End of FFmpeg Error ---\n');
         })
         .finally(() => {
-            // Clean up temporary file
             fs.unlink(tempFilePath, (err) => {
                 if (err) console.error(`Failed to delete temp file ${tempFilePath}:`, err);
             });
         });
 
-    // 3. Add video to JSON immediately, pointing to the future stream URL
+    // 3. Add video to JSON immediately
     const videos = readVideos();
     const newVideo = {
       id: Date.now(),
       title,
-      link: `/streams/${streamId}/master.m3u8`, // This is the HLS manifest link
-      processing: true, // Add a flag to indicate processing
+      link: `/streams/${streamId}/master.m3u8`, // HLS manifest link
+      type: 'upload',
+      processing: true, // Flag to indicate processing
     };
 
     videos.push(newVideo);
