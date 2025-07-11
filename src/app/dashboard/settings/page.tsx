@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Loader2, Link, Upload, Cog } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import axios from 'axios';
+import { Progress } from '@/components/ui/progress';
 
 interface VideoContent {
   id: number;
@@ -27,6 +29,7 @@ export default function SettingsPage() {
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -90,19 +93,24 @@ export default function SettingsPage() {
         return;
     }
     setIsUploading(true);
+    setUploadProgress(0);
     const formData = new FormData();
     formData.append('title', uploadTitle);
     formData.append('video', uploadFile);
 
     try {
-        const response = await fetch('/api/videos/upload', {
-            method: 'POST',
-            body: formData,
+        const response = await axios.post('/api/videos/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            onUploadProgress: (progressEvent) => {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 1));
+                setUploadProgress(percentCompleted);
+            },
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Upload failed');
+        if (response.status !== 201) {
+             throw new Error(response.data.message || 'Upload failed');
         }
 
         await fetchVideos();
@@ -114,9 +122,10 @@ export default function SettingsPage() {
 
         toast({ title: t('settings.toast.videoAdded.title'), description: "Video is now processing in the background." });
     } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Upload Error', description: error.message || 'Failed to upload video.' });
+        toast({ variant: 'destructive', title: 'Upload Error', description: error.response?.data?.message || error.message || 'Failed to upload video.' });
     } finally {
         setIsUploading(false);
+        setUploadProgress(0);
     }
   };
 
@@ -197,11 +206,20 @@ export default function SettingsPage() {
                        disabled={isUploading}
                     />
                   </div>
+                  {isUploading && (
+                    <div className="md:col-span-3 w-full space-y-2">
+                      <div className="flex justify-between">
+                         <p className="text-sm text-muted-foreground">{uploadProgress < 100 ? t('settings.upload.uploading') : 'Processing...'}</p>
+                         <p className="text-sm font-medium">{uploadProgress}%</p>
+                      </div>
+                      <Progress value={uploadProgress} className="w-full" />
+                    </div>
+                  )}
                   <Button type="submit" className="w-full md:col-span-3" disabled={isUploading || !uploadFile || !uploadTitle}>
                     {isUploading ? (
                       <>
                         <Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
-                        {t('settings.upload.uploading')}
+                        {uploadProgress < 100 ? t('settings.upload.uploading') : 'Processing...'}
                       </>
                     ) : (
                       <>
