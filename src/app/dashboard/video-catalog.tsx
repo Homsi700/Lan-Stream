@@ -11,6 +11,8 @@ export interface Video {
   title: string;
   link: string;
   summary?: string;
+  thumbnail?: string;
+  processing?: boolean;
 }
 
 export function VideoCatalog() {

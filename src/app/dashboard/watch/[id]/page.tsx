@@ -17,6 +17,7 @@ interface Video {
   signalingUrl?: string;
   username?: string;
   password?: string;
+  thumbnail?: string;
 }
 
 const getYouTubeEmbedUrl = (url: string): string | null => {

@@ -112,6 +112,7 @@ export async function POST(req: NextRequest) {
       link: `/streams/${streamId}/master.m3u8`, // HLS manifest link
       type: 'upload',
       processing: true, // Flag to indicate processing
+      thumbnail: 'https://placehold.co/600x400.png',
     };
 
     videos.push(newVideo);

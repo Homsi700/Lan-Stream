@@ -23,6 +23,7 @@ interface VideoContent {
   username?: string;
   password?: string;
   processing?: boolean;
+  thumbnail?: string;
 }
 
 export default function SettingsPage() {
@@ -80,7 +81,7 @@ export default function SettingsPage() {
       const response = await fetch('/api/videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Date.now(), ...videoData }),
+        body: JSON.stringify({ id: Date.now(), thumbnail: 'https://placehold.co/600x400.png', ...videoData }),
       });
        if (!response.ok) {
          throw new Error('Failed to add video');
@@ -245,6 +246,14 @@ export default function SettingsPage() {
                     id="edit-video-title"
                     value={editingVideo.title}
                     onChange={(e) => setEditingVideo({...editingVideo, title: e.target.value})}
+                />
+            </div>
+             <div>
+                <Label htmlFor="edit-video-thumbnail">Thumbnail URL</Label>
+                <Input
+                    id="edit-video-thumbnail"
+                    value={editingVideo.thumbnail || ''}
+                    onChange={(e) => setEditingVideo({...editingVideo, thumbnail: e.target.value})}
                 />
             </div>
             { (editingVideo.type === 'link' || editingVideo.type === 'ipcam') && (
