@@ -19,11 +19,19 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
         return null;
     }
     let videoId = null;
-    if (url.includes('watch?v=')) {
-        videoId = new URL(url).searchParams.get('v');
-    } else if (url.includes('youtu.be/')) {
-        videoId = new URL(url).pathname.split('/')[1];
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
+            videoId = urlObj.searchParams.get('v');
+        } else if (urlObj.hostname === 'youtu.be') {
+            // Remove leading slash and split by '?' to handle timestamp parameters
+            videoId = urlObj.pathname.substring(1).split('?')[0];
+        }
+    } catch(e) {
+        console.error("Invalid URL for YouTube parsing:", e);
+        return null;
     }
+    
     return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
 }
 
@@ -99,4 +107,3 @@ export default function WatchPage() {
     </div>
   );
 }
-
