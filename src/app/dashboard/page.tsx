@@ -6,6 +6,8 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, UserX, Loader2, Clock, Wifi } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface User {
   id: number;
@@ -19,13 +21,26 @@ interface Session {
     loggedInAt: string;
 }
 
+interface DialogData {
+    title: string;
+    users: { username: string }[];
+}
+
 const RECENTLY_ACTIVE_MINUTES = 5;
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<{ active: number; inactive: number; expired: number } | null>(null);
+  const [userLists, setUserLists] = useState<{ active: User[]; inactive: User[]; expired: User[] }>({ active: [], inactive: [], expired: [] });
   const [recentlyActiveUsers, setRecentlyActiveUsers] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogData, setDialogData] = useState<DialogData | null>(null);
+
+  const handleCardClick = (title: string, users: { username: string }[]) => {
+    setDialogData({ title, users });
+    setIsDialogOpen(true);
+  }
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -33,24 +48,23 @@ export default function DashboardPage() {
         const response = await fetch('/api/users');
         const users: User[] = await response.json();
         
-        let activeUsers = 0;
-        let inactiveUsers = 0;
-        let expiredUsers = 0;
-
+        const lists = { active: [] as User[], inactive: [] as User[], expired: [] as User[] };
         const clientUsers = users.filter(u => u.username !== 'admin');
 
         clientUsers.forEach(u => {
             const isExpired = u.expiresAt && new Date(u.expiresAt) < new Date();
             if (isExpired) {
-                expiredUsers++;
+                lists.expired.push(u);
             } else if (u.status === 'active') {
-                activeUsers++;
+                lists.active.push(u);
             } else {
-                inactiveUsers++;
+                lists.inactive.push(u);
             }
         });
+        
+        setUserLists(lists);
+        setStats({ active: lists.active.length, inactive: lists.inactive.length, expired: lists.expired.length });
 
-        setStats({ active: activeUsers, inactive: inactiveUsers, expired: expiredUsers });
       } catch (error) {
         console.error("Failed to fetch user stats:", error);
       } finally {
@@ -91,7 +105,7 @@ export default function DashboardPage() {
       </header>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
+          <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleCardClick(t('dashboard.stats.recentlyActive'), recentlyActiveUsers)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t('dashboard.stats.recentlyActive')}
@@ -113,7 +127,7 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleCardClick(`${t('userManagement.status.active')} ${t('sidebar.userManagement')}`, userLists.active)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t('userManagement.status.active')} {t('sidebar.userManagement')}
@@ -128,7 +142,7 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleCardClick(`${t('userManagement.status.inactive')} ${t('sidebar.userManagement')}`, userLists.inactive)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t('userManagement.status.inactive')} {t('sidebar.userManagement')}
@@ -143,7 +157,7 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-           <Card>
+           <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleCardClick(`${t('userManagement.status.expired')} ${t('sidebar.userManagement')}`, userLists.expired)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t('userManagement.status.expired')} {t('sidebar.userManagement')}
@@ -161,6 +175,31 @@ export default function DashboardPage() {
       </div>
       
       <VideoCatalog />
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{dialogData?.title}</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-72 w-full rounded-md border p-4">
+                {dialogData && dialogData.users.length > 0 ? (
+                    <ul className="space-y-2">
+                        {dialogData.users.map((user, index) => (
+                            <li key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                <span className="font-mono text-sm">{user.username}</span>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                        {t('dashboard.stats.noUsers')}
+                    </div>
+                )}
+            </ScrollArea>
+          </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+    
