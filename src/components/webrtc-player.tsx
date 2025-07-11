@@ -1,8 +1,11 @@
 "use client";
 
 import { useRef, useEffect } from 'react';
-// @ts-ignore - webrtc-player doesn't have official types, so we ignore the warning
-import WebRTCPlayer from 'webrtc-player';
+
+// webrtc-player doesn't have official types or ES module support.
+// We use require and ts-ignore to handle it.
+// @ts-ignore
+const WebRTCPlayer = require('webrtc-player');
 
 interface WebRTCPlayerProps {
   signalingUrl: string;
@@ -10,7 +13,7 @@ interface WebRTCPlayerProps {
   password?: string;
 }
 
-export function WebRTCPlayer({ signalingUrl, username, password }: WebRTCPlayerProps) {
+export function WebRTCPlayerComponent({ signalingUrl, username, password }: WebRTCPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -20,6 +23,7 @@ export function WebRTCPlayer({ signalingUrl, username, password }: WebRTCPlayerP
     let player: any = null;
 
     try {
+      console.log(`Initializing WebRTC Player for URL: ${signalingUrl}`);
       player = new WebRTCPlayer(video, {
         type: 'whep', // WebRTC-HTTP Egress Protocol, common for broadcasting
         url: signalingUrl,
@@ -35,6 +39,10 @@ export function WebRTCPlayer({ signalingUrl, username, password }: WebRTCPlayerP
         console.log('WebRTC Player disconnected');
       });
 
+      player.on('connected', () => {
+        console.log('WebRTC Player connected successfully.');
+      });
+
     } catch (e) {
       console.error("Failed to initialize WebRTC Player:", e);
     }
@@ -42,6 +50,7 @@ export function WebRTCPlayer({ signalingUrl, username, password }: WebRTCPlayerP
     // Cleanup function
     return () => {
       if (player) {
+        console.log('Closing WebRTC Player.');
         player.close();
       }
     };

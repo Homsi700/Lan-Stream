@@ -1,10 +1,9 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { VideoPlayer } from '@/components/video-player';
 import { ImageStreamPlayer } from '@/components/image-stream-player';
-import { WebRTCPlayer } from '@/components/webrtc-player';
+import { WebRTCPlayerComponent } from '@/components/webrtc-player';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Film } from 'lucide-react';
 import Link from 'next/link';
@@ -41,6 +40,16 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
     return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
 }
 
+const isIpCamStream = (video: Video): boolean => {
+    if (video.type === 'ipcam') return true;
+    
+    // Fallback for older data that might not have a `type`
+    if (!video.link) return false;
+    const ipCamRegex = /^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\b.*/;
+    return ipCamRegex.test(video.link);
+};
+
+
 export default function WatchPage() {
   const params = useParams();
   const { t } = useTranslation();
@@ -71,6 +80,7 @@ export default function WatchPage() {
   const renderPlayer = () => {
     if (!video) return null;
     
+    // Check for YouTube specifically first, as it's a special 'link' type
     if (video.type === 'link' && video.link) {
         const youtubeEmbedUrl = getYouTubeEmbedUrl(video.link);
         if (youtubeEmbedUrl) {
@@ -90,13 +100,20 @@ export default function WatchPage() {
     switch (video.type) {
         case 'ipcam':
             return <ImageStreamPlayer streamSrc={video.link!} />;
-        case 'upload':
-        case 'link': // Catches non-YouTube links
-            return <VideoPlayer videoSrc={video.link!} />;
         case 'webrtc':
-            return <WebRTCPlayer signalingUrl={video.signalingUrl!} username={video.username} password={video.password} />;
+            return <WebRTCPlayerComponent signalingUrl={video.signalingUrl!} username={video.username} password={video.password} />;
+        case 'upload':
+        case 'link': // Catches HLS, MP4, and other direct links
+            return <VideoPlayer videoSrc={video.link!} />;
         default:
-            return <div className="text-white">Unsupported video type.</div>;
+             // Fallback logic for older items without a `type`
+            if (isIpCamStream(video)) {
+                return <ImageStreamPlayer streamSrc={video.link!} />;
+            }
+            if (video.link) {
+                return <VideoPlayer videoSrc={video.link} />;
+            }
+            return <div className="text-white">Unsupported or invalid video source.</div>;
     }
   }
 
