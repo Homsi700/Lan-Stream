@@ -65,4 +65,3 @@ export function WebRTCPlayer({ signalingUrl, username, password }: WebRTCPlayerP
     </div>
   );
 }
-
