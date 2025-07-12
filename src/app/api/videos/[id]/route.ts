@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
@@ -18,7 +18,7 @@ const writeVideos = (videos: any[]) => {
   fs.writeFileSync(videosFilePath, JSON.stringify(videos, null, 2));
 };
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
   const updatedVideoData = await request.json();
   let videos = readVideos();
@@ -33,7 +33,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
   let videos = readVideos();
   const videoToDelete = videos.find(video => video.id === id);

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { add } from 'date-fns';
@@ -18,7 +18,7 @@ const writeUsers = (users: any[]) => {
   fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
 };
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
     const id = parseInt(params.id, 10);
     const users = readUsers();
     const user = users.find(u => u.id === id);
@@ -29,7 +29,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
   const updatedUserData = await request.json();
   let users = readUsers();
@@ -49,7 +49,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
   let users = readUsers();
   const initialLength = users.length;
@@ -63,7 +63,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id:string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: { id:string } }) {
     const id = parseInt(params.id, 10);
     const { status, renewalPeriod } = await request.json();
     let users = readUsers();
